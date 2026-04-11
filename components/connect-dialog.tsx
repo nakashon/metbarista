@@ -39,15 +39,15 @@ export function ConnectDialog({ open, onConnected, onCancel }: ConnectDialogProp
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onCancel?.()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-[#161210] border-white/[0.08] text-[#f5f0ea]">
         <DialogHeader>
           <div className="flex items-center gap-2 mb-1">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#e8944a]/15 text-[#e8944a]">
               <Coffee className="h-4 w-4" />
             </div>
-            <DialogTitle>Connect to your machine</DialogTitle>
+            <DialogTitle className="text-[#f5f0ea]">Connect to your machine</DialogTitle>
           </div>
-          <DialogDescription>
+          <DialogDescription className="text-[#f5f0ea]/50">
             Enter your Meticulous machine&apos;s local IP address. It&apos;s on your
             router or shown on the machine display.
           </DialogDescription>
@@ -55,30 +55,30 @@ export function ConnectDialog({ open, onConnected, onCancel }: ConnectDialogProp
 
         <div className="space-y-4 pt-2">
           <div className="space-y-2">
-            <Label htmlFor="machine-ip">Machine IP address</Label>
+            <Label htmlFor="machine-ip" className="text-[#f5f0ea]/70">Machine IP address</Label>
             <Input
               id="machine-ip"
               placeholder="192.168.1.x"
               value={ip}
               onChange={(e) => setIp(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleConnect()}
-              className="font-mono"
+              className="bg-white/[0.05] border-white/[0.08] text-[#f5f0ea] placeholder:text-[#f5f0ea]/30 focus:border-[#e8944a]/50 font-mono"
             />
-            <p className="text-xs text-muted-foreground">
-              Example: <span className="font-mono">192.168.86.28</span> or{" "}
-              <span className="font-mono">192.168.86.28:8080</span>
+            <p className="text-xs text-[#f5f0ea]/30">
+              Example: <span className="font-mono text-[#f5f0ea]/50">192.168.86.28</span> or{" "}
+              <span className="font-mono text-[#f5f0ea]/50">192.168.86.28:8080</span>
             </p>
           </div>
 
           {status === "ok" && (
-            <div className="flex items-center gap-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400">
+            <div className="flex items-center gap-2 rounded-lg bg-[#4ade80]/10 border border-[#4ade80]/20 px-3 py-2 text-sm text-[#4ade80]">
               <CheckCircle className="h-4 w-4 shrink-0" />
               Connected to <strong>{machineName}</strong>
             </div>
           )}
 
           {status === "error" && (
-            <div className="flex items-start gap-2 rounded-lg bg-red-500/10 border border-red-500/30 px-3 py-2 text-sm text-red-700 dark:text-red-400">
+            <div className="flex items-start gap-2 rounded-lg bg-red-500/10 border border-red-500/20 px-3 py-2 text-sm text-red-400">
               <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
               {errorMsg}
             </div>
@@ -87,7 +87,7 @@ export function ConnectDialog({ open, onConnected, onCancel }: ConnectDialogProp
           <Button
             onClick={handleConnect}
             disabled={!ip.trim() || status === "testing" || status === "ok"}
-            className="w-full"
+            className="w-full bg-[#e8944a] text-[#0c0a09] font-semibold hover:bg-[#f5a855]"
           >
             {status === "testing" ? (
               <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Testing connection…</>

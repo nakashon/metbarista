@@ -27,18 +27,18 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
     >
       <body className="min-h-full flex flex-col bg-background">
         <Navbar />
         <main className="flex-1">{children}</main>
-        <footer className="border-t border-border py-4 text-center text-xs text-muted-foreground">
+        <footer className="border-t border-white/[0.05] py-5 text-center text-xs text-[#f5f0ea]/25">
           mbrista — open source, always free ·{" "}
           <a
             href="https://discord.gg/w48ha2h3"
             target="_blank"
             rel="noopener noreferrer"
-            className="underline underline-offset-2 hover:text-foreground transition-colors"
+            className="underline underline-offset-2 hover:text-[#f5f0ea]/50 transition-colors"
           >
             Meticulous Discord
           </a>
