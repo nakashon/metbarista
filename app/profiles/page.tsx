@@ -40,9 +40,20 @@ export default function ProfilesPage() {
     }
   }
 
+  // /api/v1/profile/list does NOT return stages — infer type from variables instead.
+  // Profiles with pressure vars → pressure, flow vars → flow, neither → power.
+  function inferTypes(p: Profile): string[] {
+    const vtypes = new Set((p.variables ?? []).map((v) => v.type));
+    const out: string[] = [];
+    if (vtypes.has("pressure")) out.push("pressure");
+    if (vtypes.has("flow")) out.push("flow");
+    if (out.length === 0) out.push("power");
+    return out;
+  }
+
   const filtered = filter === "All"
     ? profiles
-    : profiles.filter((p) => p.stages?.some((s) => s.type === filter));
+    : profiles.filter((p) => inferTypes(p).includes(filter));
 
   if (loading) return (
     <div className="min-h-screen bg-[#0c0a09] flex items-center justify-center">
