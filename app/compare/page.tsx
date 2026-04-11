@@ -12,10 +12,13 @@ import { format } from "date-fns";
 
 const COMPARE_COLORS = ["#3b82f6", "#f97316", "#22c55e", "#a855f7", "#ec4899"];
 
+type Metric = "pressure" | "flow";
+
 export default function ComparePage() {
   const [allShots, setAllShots] = useState<ShotEntry[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [metric, setMetric] = useState<Metric>("pressure");
 
   useEffect(() => {
     if (!getSavedIp()) { setLoading(false); return; }
@@ -30,13 +33,11 @@ export default function ComparePage() {
 
   const selectedShots = allShots.filter((s) => selected.includes(s.id));
 
-  // Build merged chart data aligned by time offset
   const chartData = (() => {
     if (!selectedShots.length) return [];
     const rows: Record<string, number | string>[] = [];
     const sampled = selectedShots.map((s) => downsampleFrames(s.data, 150));
     const maxFrames = Math.max(...sampled.map((d) => d.length));
-
     for (let i = 0; i < maxFrames; i++) {
       const row: Record<string, number | string> = {};
       let t = 0;
@@ -54,6 +55,9 @@ export default function ComparePage() {
     }
     return rows;
   })();
+
+  const yDomain: [number, number] = metric === "pressure" ? [0, 12] : [0, 6];
+  const yUnit = metric === "pressure" ? " bar" : " ml/s";
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-screen bg-[#0c0a09]">
@@ -77,8 +81,7 @@ export default function ComparePage() {
         {selected.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {selectedShots.map((shot, i) => (
-              <span
-                key={shot.id}
+              <span key={shot.id}
                 className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium"
                 style={{ borderColor: `${COMPARE_COLORS[i]}40`, color: COMPARE_COLORS[i], backgroundColor: `${COMPARE_COLORS[i]}10` }}
               >
@@ -92,29 +95,49 @@ export default function ComparePage() {
           </div>
         )}
 
-        {/* Comparison chart */}
+        {/* Chart + metric toggle */}
         {selected.length > 1 && (
           <div className="rounded-2xl border border-white/[0.06] bg-[#161210] p-5">
-            <p className="text-sm font-semibold text-[#f5f0ea] mb-4">Pressure Overlay</p>
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm font-semibold text-[#f5f0ea]">
+                {metric === "pressure" ? "Pressure Overlay" : "Flow Overlay"}
+              </p>
+              {/* Metric toggle */}
+              <div className="flex items-center gap-1 rounded-lg bg-white/[0.04] border border-white/[0.06] p-0.5">
+                {(["pressure", "flow"] as Metric[]).map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => setMetric(m)}
+                    className={`rounded-md px-3 py-1 text-xs font-medium transition-all capitalize ${
+                      metric === m
+                        ? "bg-[#e8944a]/15 text-[#e8944a]"
+                        : "text-[#f5f0ea]/40 hover:text-[#f5f0ea]/70"
+                    }`}
+                  >
+                    {m}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <ResponsiveContainer width="100%" height={280}>
               <LineChart data={chartData} margin={{ top: 4, right: 8, bottom: 4, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
                 <XAxis
                   dataKey="t"
-                  tickFormatter={(v) => `${(v / 1000).toFixed(0)}s`}
+                  tickFormatter={(v) => `${(Number(v) / 1000).toFixed(0)}s`}
                   tick={{ fontSize: 11, fill: "rgba(245,240,234,0.3)" }}
-                  tickLine={false}
-                  axisLine={false}
+                  tickLine={false} axisLine={false}
                 />
                 <YAxis
-                  domain={[0, 12]}
+                  domain={yDomain}
+                  unit={yUnit}
                   tick={{ fontSize: 11, fill: "rgba(245,240,234,0.3)" }}
-                  tickLine={false}
-                  axisLine={false}
-                  width={28}
+                  tickLine={false} axisLine={false} width={40}
                 />
                 <Tooltip
                   labelFormatter={(l) => `${(Number(l) / 1000).toFixed(1)}s`}
+                  formatter={(v) => (typeof v === "number" ? `${v.toFixed(2)}${yUnit}` : String(v))}
                   contentStyle={{ backgroundColor: "#161210", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", fontSize: 12 }}
                   labelStyle={{ color: "rgba(245,240,234,0.6)" }}
                 />
@@ -123,8 +146,8 @@ export default function ComparePage() {
                   <Line
                     key={shot.id}
                     type="monotone"
-                    dataKey={`p_${i}`}
-                    name={`${shot.name.slice(0, 18)} (P)`}
+                    dataKey={metric === "pressure" ? `p_${i}` : `f_${i}`}
+                    name={shot.name.slice(0, 18)}
                     stroke={COMPARE_COLORS[i]}
                     strokeWidth={2}
                     dot={false}
@@ -174,47 +197,46 @@ export default function ComparePage() {
         )}
 
         {/* Shot selector */}
-        <div>
-          <h2 className="text-sm font-semibold text-[#f5f0ea]/60 mb-3">
-            Select shots
-            {selected.length > 0 && (
-              <span className="ml-2 text-[#f5f0ea]/30 font-mono">{selected.length}/5</span>
-            )}
-          </h2>
-          <div className="space-y-1.5 max-h-96 overflow-y-auto pr-1">
-            {allShots.map((shot) => {
-              const isSelected = selected.includes(shot.id);
-              const colorIdx = selected.indexOf(shot.id);
-              const stats = computeShotStats(shot.data);
-              return (
-                <button
-                  key={shot.id}
-                  onClick={() => toggle(shot.id)}
-                  disabled={!isSelected && selected.length >= 5}
-                  className={`w-full text-left rounded-xl border px-4 py-3 text-sm flex items-center gap-3 transition-all disabled:opacity-30 ${
-                    isSelected
-                      ? "border-[#e8944a]/20 bg-[#e8944a]/5 text-[#f5f0ea]"
-                      : "border-white/[0.05] bg-[#161210] text-[#f5f0ea]/60 hover:border-white/[0.10] hover:bg-[#1e1b16]"
-                  }`}
-                >
-                  <span
-                    className="w-2.5 h-2.5 rounded-full shrink-0 border-2 transition-all"
-                    style={
-                      isSelected
-                        ? { backgroundColor: COMPARE_COLORS[colorIdx], borderColor: COMPARE_COLORS[colorIdx] }
-                        : { borderColor: "rgba(245,240,234,0.15)", backgroundColor: "transparent" }
-                    }
-                  />
-                  <span className="flex-1 truncate">{shot.name}</span>
-                  <span className="text-xs font-mono text-[#f5f0ea]/25 shrink-0">
-                    {format(new Date(shot.time * 1000), "MMM d")} · {stats.durationSec}s · {stats.finalWeight.toFixed(0)}g
-                  </span>
-                </button>
-              );
-            })}
+        {allShots.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
+            <GitCompare className="h-8 w-8 text-[#f5f0ea]/15" />
+            <p className="text-sm text-[#f5f0ea]/40">Connect your machine to load shot history</p>
           </div>
-        </div>
-
+        ) : (
+          <div>
+            <h2 className="text-sm font-semibold text-[#f5f0ea]/50 mb-3">
+              Select shots
+              {selected.length > 0 && <span className="ml-2 text-[#f5f0ea]/25 font-mono">{selected.length}/5</span>}
+            </h2>
+            <div className="space-y-1.5 max-h-96 overflow-y-auto pr-1">
+              {allShots.map((shot) => {
+                const isSelected = selected.includes(shot.id);
+                const colorIdx = selected.indexOf(shot.id);
+                const stats = computeShotStats(shot.data);
+                return (
+                  <button key={shot.id} onClick={() => toggle(shot.id)}
+                    disabled={!isSelected && selected.length >= 5}
+                    className={`w-full text-left rounded-xl border px-4 py-3 text-sm flex items-center gap-3 transition-all disabled:opacity-30 ${
+                      isSelected
+                        ? "border-[#e8944a]/20 bg-[#e8944a]/5 text-[#f5f0ea]"
+                        : "border-white/[0.05] bg-[#161210] text-[#f5f0ea]/60 hover:border-white/[0.10] hover:bg-[#1e1b16]"
+                    }`}
+                  >
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0 border-2 transition-all"
+                      style={isSelected
+                        ? { backgroundColor: COMPARE_COLORS[colorIdx], borderColor: COMPARE_COLORS[colorIdx] }
+                        : { borderColor: "rgba(245,240,234,0.15)", backgroundColor: "transparent" }}
+                    />
+                    <span className="flex-1 truncate">{shot.name}</span>
+                    <span className="text-xs font-mono text-[#f5f0ea]/25 shrink-0">
+                      {format(new Date(shot.time * 1000), "MMM d")} · {stats.durationSec}s · {stats.finalWeight.toFixed(0)}g
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

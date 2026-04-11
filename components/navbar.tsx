@@ -1,17 +1,18 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Coffee, Gauge, History, Layers, Zap, Users, GitCompare, Radio } from "lucide-react";
+import { Coffee, Gauge, History, Layers, Users, GitCompare, Radio, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ConnectionDot } from "./connection-dot";
 
 const NAV_LINKS = [
-  { href: "/dashboard", label: "Dashboard", icon: Gauge },
-  { href: "/history", label: "Shots", icon: History },
-  { href: "/profiles", label: "Profiles", icon: Layers },
-  { href: "/live", label: "Live", icon: Radio },
-  { href: "/compare", label: "Compare", icon: GitCompare },
-  { href: "/community", label: "Community", icon: Users },
+  { href: "/dashboard",  label: "Dashboard", icon: Gauge },
+  { href: "/history",    label: "Shots",     icon: History },
+  { href: "/profiles",   label: "Profiles",  icon: Layers },
+  { href: "/live",       label: "Live Shot", icon: Radio },
+  { href: "/compare",    label: "Compare",   icon: GitCompare },
+  { href: "/import",     label: "Import",    icon: Upload },
+  { href: "/community",  label: "Community", icon: Users },
 ];
 
 export function Navbar() {
