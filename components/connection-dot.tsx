@@ -20,13 +20,13 @@ export function ConnectionDot() {
 
   const label = status === "connected" ? machineName || "Connected"
     : status === "connecting" ? "Connecting…"
-    : status === "error" ? "Error"
+    : status === "error" ? "Reconnect"
     : "Connect";
 
   const styles = {
     connected: "border-[#e8944a]/25 bg-[#e8944a]/10 text-[#e8944a]",
     connecting: "border-white/[0.08] bg-white/[0.04] text-[#f5f0ea]/50",
-    error: "border-red-500/25 bg-red-500/10 text-red-400",
+    error: "border-white/[0.08] bg-white/[0.04] text-[#f5f0ea]/40 hover:text-[#f5f0ea]/70",
     disconnected: "border-white/[0.08] bg-white/[0.04] text-[#f5f0ea]/40 hover:text-[#f5f0ea]/70",
   };
 
