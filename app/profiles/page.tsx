@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Loader2, Layers } from "lucide-react";
+import { Loader2, Layers, Plus } from "lucide-react";
 import { listProfiles, loadProfileById } from "@/lib/machine-api";
 import { getSavedIp } from "@/lib/connection-store";
 import { ProfileCard } from "@/components/profile-card";
@@ -72,6 +72,10 @@ export default function ProfilesPage() {
               {profiles.length} profile{profiles.length !== 1 ? "s" : ""} on your machine
             </p>
           </div>
+          <Link href="/create"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-[#e8944a] px-4 py-2 text-sm font-semibold text-[#0c0a09] hover:bg-[#f5a855] transition-all shrink-0">
+            <Plus className="h-3.5 w-3.5" /> New Profile
+          </Link>
           <div className="flex gap-2 flex-wrap">
             {STYLE_FILTERS.map((f) => (
               <button
