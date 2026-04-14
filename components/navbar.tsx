@@ -43,6 +43,10 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-3">
+          <a href="https://nakashon.com" target="_blank" rel="noopener noreferrer"
+            className="hidden lg:flex items-center gap-1 text-xs text-[#f5f0ea]/20 hover:text-[#f5f0ea]/50 transition-colors">
+            by Asaf Nakash
+          </a>
           <a href="https://github.com/nakashon/metbarista" target="_blank" rel="noopener noreferrer"
             title="Star on GitHub"
             className="flex items-center text-[#f5f0ea]/30 hover:text-[#f5f0ea]/70 transition-colors">
