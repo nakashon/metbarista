@@ -38,7 +38,7 @@ export async function connectSocket(
     const { io } = await import("socket.io-client");
 
     socket = io(`http://${ip}`, {
-      transports: ["websocket", "polling"],
+      transports: ["polling", "websocket"],
       reconnectionAttempts: 5,
       reconnectionDelay: 2000,
       timeout: 8000,
