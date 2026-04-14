@@ -9,7 +9,7 @@ const NAV_LINKS = [
   { href: "/dashboard",  label: "Dashboard", icon: Gauge },
   { href: "/history",    label: "Shots",     icon: History },
   { href: "/profiles",   label: "Profiles",  icon: Layers },
-  { href: "/live",       label: "Live Shot", icon: Radio },
+  { href: "/live",       label: "Focus Mode", icon: Radio },
   { href: "/compare",    label: "Compare",   icon: GitCompare },
   { href: "/import",     label: "Import",    icon: Upload },
   { href: "/community",  label: "Community", icon: Users },
