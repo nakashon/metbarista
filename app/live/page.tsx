@@ -109,8 +109,7 @@ export default function LivePage() {
         </div>
 
         {/* Always-on sensor tiles: state + temp + weight + pressure */}
-        {connected && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="rounded-2xl border border-white/[0.06] bg-[#161210] p-4 flex flex-col gap-1">
               <span className="text-xs text-[#f5f0ea]/35 uppercase tracking-wider">State</span>
               <span className={`text-2xl font-bold font-mono capitalize ${phaseColor}`}>
@@ -142,7 +141,6 @@ export default function LivePage() {
               </span>
             </div>
           </div>
-        )}
 
         {/* Shot-specific status grid (during extraction) */}
         {status?.shot && (
