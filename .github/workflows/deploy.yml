@@ -31,6 +31,7 @@ jobs:
         env:
           NEXT_TELEMETRY_DISABLED: 1
           NEXT_PUBLIC_FEEDBACK_TOKEN: ${{ secrets.NEXT_PUBLIC_FEEDBACK_TOKEN }}
+          NEXT_PUBLIC_CF_ANALYTICS_TOKEN: ${{ secrets.NEXT_PUBLIC_CF_ANALYTICS_TOKEN }}
 
       - uses: actions/upload-pages-artifact@v3
         with:
