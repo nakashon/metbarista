@@ -8,7 +8,7 @@ import { chromium, type Page } from "@playwright/test";
 import * as fs from "fs";
 import * as path from "path";
 
-const BASE = "http://localhost:3000";
+const BASE = "http://localhost:56404";
 const OUT = path.join(__dirname, "../qa-screenshots");
 const MACHINE_IP = "192.168.86.28";
 
@@ -75,7 +75,7 @@ async function main() {
 
   // Inject machine IP into localStorage before any page loads
   await context.addInitScript((ip) => {
-    localStorage.setItem("mbrista_machine_ip", ip);
+    localStorage.setItem("metbarista_machine_ip", ip);
   }, MACHINE_IP);
 
   const page = await context.newPage();

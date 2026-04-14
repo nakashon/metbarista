@@ -49,7 +49,7 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
     >
-      <body className="min-h-full flex flex-col bg-background">
+      <body className="min-h-full flex flex-col bg-background overflow-x-hidden">
         {/* Top navbar — desktop md+ */}
         <Navbar />
         {/* Mobile header — logo + connection dot */}

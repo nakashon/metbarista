@@ -77,7 +77,7 @@ export function FeedbackButton() {
       <button
         onClick={() => setOpen(true)}
         title="Send feedback"
-        className="fixed bottom-24 right-4 md:bottom-6 md:right-6 z-40 flex items-center gap-2 rounded-full border border-white/[0.10] bg-[#161210]/90 backdrop-blur-sm px-3.5 py-2 text-xs font-medium text-[#f5f0ea]/40 hover:text-[#e8944a] hover:border-[#e8944a]/30 hover:bg-[#1e1b16] transition-all shadow-lg"
+        className="fixed bottom-[104px] right-4 md:bottom-6 md:right-6 z-40 flex items-center gap-2 rounded-full border border-white/[0.10] bg-[#161210]/90 backdrop-blur-sm px-3.5 py-2 text-xs font-medium text-[#f5f0ea]/40 hover:text-[#e8944a] hover:border-[#e8944a]/30 hover:bg-[#1e1b16] transition-all shadow-lg"
       >
         <MessageSquarePlus className="h-3.5 w-3.5 shrink-0" />
         <span className="hidden sm:inline">Feedback</span>

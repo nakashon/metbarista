@@ -140,7 +140,7 @@ export default function DashboardPage() {
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#4ade80]" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-[#f5f0ea]">{machine?.name ?? "Machine"}</h1>
+              <h1 className="text-lg sm:text-2xl font-bold text-[#f5f0ea] truncate max-w-[220px] sm:max-w-none">{machine?.name ?? "Machine"}</h1>
               <p className="text-xs text-[#f5f0ea]/40">{ip}</p>
             </div>
           </div>
@@ -191,8 +191,8 @@ export default function DashboardPage() {
         {/* Machine control */}
         <div className="rounded-2xl border border-white/[0.06] bg-[#161210] p-5">
           <p className="text-xs text-[#f5f0ea]/35 uppercase tracking-wider mb-4">Machine Control</p>
-          {/* Secondary actions: 3-col grid on mobile, all in a row on desktop */}
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-2">
+          {/* Secondary actions: 3-col on mobile, 5-col on desktop (all in one row) */}
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-2">
             {ACTIONS.filter(a => a.style !== "primary").map(({ action, label, icon: Icon, style }) => {
               const base = "flex flex-col items-center justify-center gap-2 rounded-xl py-4 text-xs font-semibold transition-all disabled:opacity-40 active:scale-95";
               const cls =
