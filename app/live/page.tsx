@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Radio, Loader2, WifiOff, Thermometer, Weight, Droplets } from "lucide-react";
+import { Radio, Loader2, WifiOff, Thermometer, Weight, Droplets, Timer } from "lucide-react";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
@@ -107,8 +107,8 @@ export default function LivePage() {
           </div>
         </div>
 
-        {/* Always-on sensor tiles: state + temp + weight + pressure */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {/* Always-on sensor tiles: state + temp + weight + pressure + time */}
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
             <div className="rounded-2xl border border-white/[0.06] bg-[#161210] p-4 flex flex-col gap-1">
               <span className="text-xs text-[#f5f0ea]/35 uppercase tracking-wider">State</span>
               <span className={`text-2xl font-bold font-mono capitalize ${phaseColor}`}>
@@ -137,6 +137,14 @@ export default function LivePage() {
               <span className="text-2xl font-bold font-mono text-[#f5f0ea]">
                 {status?.sensors?.p != null ? status.sensors.p.toFixed(2) : "—"}
                 <span className="text-sm font-normal text-[#f5f0ea]/35"> bar</span>
+              </span>
+            </div>
+            <div className="rounded-2xl border border-white/[0.06] bg-[#161210] p-4 flex flex-col gap-1">
+              <span className="text-xs text-[#a78bfa]/60 uppercase tracking-wider flex items-center gap-1"><Timer className="h-3 w-3" />Time</span>
+              <span className={`text-2xl font-bold font-mono ${status?.extracting ? "text-[#4ade80]" : "text-[#f5f0ea]/40"}`}>
+                {status?.time != null && status.time > 0
+                  ? `${Math.floor(status.time)}s`
+                  : "—"}
               </span>
             </div>
           </div>
