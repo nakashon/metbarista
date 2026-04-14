@@ -30,6 +30,7 @@ jobs:
       - run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: 1
+          NEXT_PUBLIC_FEEDBACK_TOKEN: ${{ secrets.NEXT_PUBLIC_FEEDBACK_TOKEN }}
 
       - uses: actions/upload-pages-artifact@v3
         with:
