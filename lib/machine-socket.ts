@@ -69,6 +69,8 @@ export async function connectSocket(handlers: Partial<SocketEventMap>): Promise<
 
   handlers.connect?.();
 
+let activePoll: (() => Promise<void>) | null = null;
+
   // Step 3 — poll every 2 s
   const poll = async () => {
     if (stopped || !activeSid) return;
@@ -87,6 +89,7 @@ export async function connectSocket(handlers: Partial<SocketEventMap>): Promise<
   };
 
   // Fire first poll immediately so stats appear without waiting 2 s
+  activePoll = poll;
   await poll();
   pollTimer = setInterval(poll, 2000);
 }
@@ -96,10 +99,16 @@ export function disconnectSocket(): void {
   if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
   activeSid = null;
   activeIp = null;
+  activePoll = null;
 }
 
 export function isSocketConnected(): boolean {
   return activeSid !== null;
+}
+
+/** Force an immediate poll — call after actions to get instant feedback */
+export function refreshNow(): void {
+  activePoll?.();
 }
 
 // Not used with polling but kept for API compat

@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { getMachineInfo, getHistory, executeAction, listProfiles } from "@/lib/machine-api";
 import { getSavedIp, clearIp, useRequireConnection } from "@/lib/connection-store";
-import { connectSocket, disconnectSocket } from "@/lib/machine-socket";
+import { connectSocket, disconnectSocket, refreshNow } from "@/lib/machine-socket";
 import type { MachineInfo, ShotEntry, Profile, LiveStatus } from "@/lib/types";
 import type { ActionType } from "@/lib/types";
 
