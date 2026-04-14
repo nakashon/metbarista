@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { Thermometer, Weight, User, Layers } from "lucide-react";
+import { Thermometer, Weight, Layers } from "lucide-react";
 import type { Profile } from "@/lib/types";
 import { ProfileCurvePreview } from "./charts/profile-curve-preview";
+import { getSavedIp } from "@/lib/connection-store";
 
 interface ProfileCardProps {
   profile: Profile;
@@ -15,30 +16,53 @@ const STAGE_COLORS: Record<string, { bg: string; text: string }> = {
   power:    { bg: "rgba(167,139,250,0.12)", text: "#a78bfa" },
 };
 
+function getImageUrl(imagePath?: string): string | null {
+  if (!imagePath) return null;
+  const ip = getSavedIp();
+  if (!ip) return null;
+  return `http://${ip}${imagePath}`;
+}
+
 export function ProfileCard({ profile, href, onLoad }: ProfileCardProps) {
   const accent = profile.display?.accentColor ?? "#e8944a";
   const stageTypes = [...new Set((profile.stages ?? []).map((s) => s.type))];
+  const imageUrl = getImageUrl(profile.display?.image);
 
   const inner = (
     <div className="group rounded-2xl border border-white/[0.06] bg-[#161210] overflow-hidden hover:border-white/[0.14] hover:bg-[#1e1b16] transition-all cursor-pointer">
-      {/* Accent top bar */}
-      <div className="h-[3px]" style={{ backgroundColor: accent }} />
 
-      <div className="p-4 space-y-3">
-        {/* Header row */}
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0 flex-1">
-            <h3 className="font-semibold text-sm text-[#f5f0ea] truncate group-hover:text-[#e8944a] transition-colors leading-snug">
-              {profile.name}
-            </h3>
-            <p className="text-xs text-[#f5f0ea]/35 flex items-center gap-1 mt-1">
-              <User className="h-2.5 w-2.5" />
-              {profile.author}
-            </p>
+      {/* Profile image or accent bar */}
+      {imageUrl ? (
+        <div className="relative h-36 overflow-hidden bg-[#0c0a09]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={imageUrl}
+            alt={profile.name}
+            className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+          />
+          {/* Gradient overlay so text over image is readable */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#161210] via-transparent to-transparent" />
+          {/* Curve preview floated top-right */}
+          <div className="absolute top-2 right-2 opacity-70 group-hover:opacity-100 transition-opacity">
+            <ProfileCurvePreview profile={profile} width={72} height={28} accentColor={accent} />
           </div>
-          <div className="shrink-0 opacity-60 group-hover:opacity-100 transition-opacity">
+        </div>
+      ) : (
+        <>
+          <div className="h-[3px]" style={{ backgroundColor: accent }} />
+          <div className="px-4 pt-3 flex justify-end opacity-60 group-hover:opacity-100 transition-opacity">
             <ProfileCurvePreview profile={profile} width={72} height={32} accentColor={accent} />
           </div>
+        </>
+      )}
+
+      <div className={`px-4 pb-4 space-y-3 ${imageUrl ? "" : "pt-1"}`}>
+        {/* Header row */}
+        <div className="min-w-0">
+          <h3 className="font-semibold text-sm text-[#f5f0ea] truncate group-hover:text-[#e8944a] transition-colors leading-snug">
+            {profile.name}
+          </h3>
+          <p className="text-xs text-[#f5f0ea]/35 mt-0.5">{profile.author}</p>
         </div>
 
         {profile.display?.shortDescription && (
@@ -56,7 +80,7 @@ export function ProfileCard({ profile, href, onLoad }: ProfileCardProps) {
             <Weight className="h-3 w-3" />{profile.final_weight}g
           </span>
           <span className="flex items-center gap-1">
-            <Layers className="h-3 w-3" />{profile.stages?.length ?? 0}
+            <Layers className="h-3 w-3" />{profile.stages?.length ?? 0} stages
           </span>
         </div>
 
@@ -65,13 +89,8 @@ export function ProfileCard({ profile, href, onLoad }: ProfileCardProps) {
           {stageTypes.map((t) => {
             const c = STAGE_COLORS[t] ?? { bg: "rgba(255,255,255,0.08)", text: "#f5f0ea" };
             return (
-              <span
-                key={t}
-                className="rounded-full px-2 py-0.5 text-[10px] font-medium capitalize"
-                style={{ backgroundColor: c.bg, color: c.text }}
-              >
-                {t}
-              </span>
+              <span key={t} className="rounded-full px-2 py-0.5 text-[10px] font-medium capitalize"
+                style={{ backgroundColor: c.bg, color: c.text }}>{t}</span>
             );
           })}
         </div>
