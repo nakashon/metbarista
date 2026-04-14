@@ -7,6 +7,7 @@ import { ProfileCurvePreview } from "@/components/charts/profile-curve-preview";
 import { ProfileFingerprint } from "@/components/charts/profile-fingerprint";
 import { Loader2, ArrowLeft, Thermometer, Weight, User, GitFork, Code } from "lucide-react";
 import { listProfiles, getHistory, loadProfileById, computeShotStats } from "@/lib/machine-api";
+import { getSavedIp } from "@/lib/connection-store";
 import { ShotChart } from "@/components/charts/shot-chart";
 import type { Profile, ShotEntry } from "@/lib/types";
 
@@ -64,6 +65,8 @@ function ProfileDetailContent() {
   );
 
   const accent = profile.display?.accentColor ?? "#e8944a";
+  const ip = getSavedIp();
+  const imageUrl = profile.display?.image && ip ? `http://${ip}${profile.display.image}` : null;
 
   return (
     <div className="min-h-screen bg-[#0c0a09]">
@@ -78,19 +81,35 @@ function ProfileDetailContent() {
 
         {/* Profile header card */}
         <div className="rounded-2xl border border-white/[0.06] bg-[#161210] overflow-hidden">
-          {/* Hero: fingerprint banner (always shown for visual richness) */}
-          <div className="relative h-28 bg-[#0c0a09] overflow-hidden">
-            <ProfileFingerprint profile={profile} height={112} accent={accent} />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#161210] via-[#161210]/30 to-transparent" />
-            {/* Profile name overlay */}
-            <div className="absolute bottom-0 inset-x-0 px-6 pb-3">
-              <h1 className="text-2xl font-bold text-[#f5f0ea] leading-tight drop-shadow">{profile.name}</h1>
-              <p className="text-sm text-[#f5f0ea]/50 flex items-center gap-1.5 mt-0.5">
+          {/* Cover photo — shown when available (machine-served image) */}
+          {imageUrl && (
+            <div className="relative h-56 sm:h-72 bg-[#0c0a09] overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={imageUrl}
+                alt={profile.name}
+                className="w-full h-full object-cover opacity-95"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#161210] via-[#161210]/20 to-transparent" />
+            </div>
+          )}
+
+          {/* Fingerprint — always shown as the data layer */}
+          <div className="relative overflow-hidden bg-[#0c0a09]" style={{ height: imageUrl ? 72 : 112 }}>
+            <ProfileFingerprint profile={profile} height={imageUrl ? 72 : 112} accent={accent} />
+            {!imageUrl && (
+              <div className="absolute inset-0 bg-gradient-to-t from-[#161210] via-[#161210]/30 to-transparent" />
+            )}
+          </div>
+
+          <div className="p-6 pt-4">
+            {/* Name + author */}
+            <div className="mb-4">
+              <h1 className="text-2xl font-bold text-[#f5f0ea] leading-tight">{profile.name}</h1>
+              <p className="text-sm text-[#f5f0ea]/50 flex items-center gap-1.5 mt-1">
                 <User className="h-3.5 w-3.5" />{profile.author}
               </p>
             </div>
-          </div>
-          <div className="p-6 pt-4">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0 space-y-1">
                 {profile.display?.description && (
