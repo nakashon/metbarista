@@ -6,7 +6,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
 import { connectSocket, disconnectSocket } from "@/lib/machine-socket";
-import { getSavedIp, useRequireConnection } from "@/lib/connection-store";
+import { getSavedIp, useRequireConnection, useIsHttps } from "@/lib/connection-store";
 import type { LiveStatus } from "@/lib/types";
 
 interface LivePoint {
@@ -18,6 +18,7 @@ interface LivePoint {
 
 export default function LivePage() {
   useRequireConnection();
+  const isHttps = useIsHttps();
   const [connected, setConnected] = useState(false);
   const [status, setStatus] = useState<LiveStatus | null>(null);
   const [data, setData] = useState<LivePoint[]>([]);
@@ -71,6 +72,19 @@ export default function LivePage() {
 
   return (
     <div className="min-h-screen bg-[#0c0a09]">
+      {isHttps && (
+        <div className="bg-amber-500/10 border-b border-amber-500/20 px-6 py-2.5 flex items-center justify-between gap-4">
+          <p className="text-xs text-amber-400/90">
+            ⚠️ Live data requires HTTP — your browser is blocking local machine access on HTTPS.
+          </p>
+          <a
+            href={typeof window !== "undefined" ? window.location.href.replace("https://", "http://") : "#"}
+            className="shrink-0 text-xs font-semibold text-amber-400 underline underline-offset-2"
+          >
+            Switch to HTTP →
+          </a>
+        </div>
+      )}
       <div className="mx-auto max-w-5xl px-6 py-10 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">

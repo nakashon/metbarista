@@ -79,8 +79,6 @@ export function useConnection() {
 
 /**
  * Hook that redirects to landing if no machine is saved.
- * Also redirects to HTTP if on HTTPS — live machine data requires HTTP
- * because browsers block fetch() to private IPs from HTTPS pages.
  * Use at the top of every protected page.
  */
 export function useRequireConnection() {
@@ -88,11 +86,18 @@ export function useRequireConnection() {
   useEffect(() => {
     if (!getSavedIp()) {
       router.replace("/");
-      return;
-    }
-    // Redirect https → http so socket polling can reach the local machine
-    if (typeof window !== "undefined" && window.location.protocol === "https:") {
-      window.location.href = window.location.href.replace("https://", "http://");
     }
   }, [router]);
+}
+
+/**
+ * Returns true if the page is on HTTPS — live machine data won't work
+ * because browsers block fetch() to private IPs from HTTPS pages.
+ */
+export function useIsHttps(): boolean {
+  const [isHttps, setIsHttps] = useState(false);
+  useEffect(() => {
+    setIsHttps(typeof window !== "undefined" && window.location.protocol === "https:");
+  }, []);
+  return isHttps;
 }
