@@ -6,10 +6,10 @@ import { format } from "date-fns";
 import { ConnectDialog } from "@/components/connect-dialog";
 import {
   Coffee, Wifi, WifiOff, Loader2,
-  Play, Square, Flame, Scale, Wind, RefreshCw, ArrowUp
+  Play, Square, Flame, Scale, Wind, RefreshCw, ArrowUp, LogOut
 } from "lucide-react";
 import { getMachineInfo, getHistory, executeAction, listProfiles } from "@/lib/machine-api";
-import { getSavedIp, useRequireConnection } from "@/lib/connection-store";
+import { getSavedIp, clearIp, useRequireConnection } from "@/lib/connection-store";
 import type { MachineInfo, ShotEntry, Profile } from "@/lib/types";
 import type { ActionType } from "@/lib/types";
 
@@ -144,12 +144,21 @@ export default function DashboardPage() {
               <p className="text-xs text-[#f5f0ea]/40">{ip}</p>
             </div>
           </div>
-          <button
-            onClick={load}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-white/[0.10] bg-transparent px-4 py-2 text-sm font-medium text-[#f5f0ea]/60 hover:bg-white/[0.05] hover:text-[#f5f0ea] transition-all"
-          >
-            <RefreshCw className="h-3.5 w-3.5" /> Refresh
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={load}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-white/[0.10] bg-transparent px-4 py-2 text-sm font-medium text-[#f5f0ea]/60 hover:bg-white/[0.05] hover:text-[#f5f0ea] transition-all"
+            >
+              <RefreshCw className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Refresh</span>
+            </button>
+            <button
+              onClick={() => { clearIp(); window.location.href = "/"; }}
+              title="Disconnect machine"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-white/[0.08] bg-transparent px-3 py-2 text-sm font-medium text-[#f5f0ea]/30 hover:bg-red-500/[0.08] hover:text-red-400 hover:border-red-500/20 transition-all"
+            >
+              <LogOut className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Disconnect</span>
+            </button>
+          </div>
         </div>
 
         {/* Machine info + quick stats */}
