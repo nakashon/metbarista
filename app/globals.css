@@ -52,7 +52,6 @@
   --color-shot-flow: var(--shot-flow);
   --color-shot-weight: var(--shot-weight);
   --color-shot-temp: var(--shot-temp);
-  --font-space: var(--font-space-grotesk);
 }
 
 :root {
@@ -90,23 +89,6 @@
   * { @apply border-border outline-ring/50; }
   body { @apply bg-background text-foreground; }
   html { @apply font-sans; }
-}
-
-/* ── Stitch design-system utilities ───────────────────────── */
-.brass-gradient {
-  background: linear-gradient(135deg, #FFE4AA 0%, #F5C444 100%);
-}
-.ghost-border {
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-.pulse-dot {
-  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
-  animation: pulse-ring 2s infinite;
-}
-@keyframes pulse-ring {
-  0%   { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
-  70%  { transform: scale(1);    box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
 }
 
 .recharts-tooltip-wrapper .recharts-default-tooltip {

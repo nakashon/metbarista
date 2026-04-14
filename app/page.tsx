@@ -3,10 +3,19 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Coffee, ArrowRight, Loader2 } from "lucide-react";
+import { Coffee, Gauge, History, ArrowRight, Layers, GitCompare, Radio, Share2, Loader2 } from "lucide-react";
 import { ConnectDialog } from "@/components/connect-dialog";
 import { getSavedIp } from "@/lib/connection-store";
 import { testConnection } from "@/lib/machine-api";
+
+const FEATURES = [
+  { icon: Gauge,      title: "Control Plane",    desc: "Preheat, tare, purge, start/stop — full machine control from your browser.",               color: "#e8944a" },
+  { icon: History,    title: "Shot Analytics",   desc: "Full history with pressure, flow, weight and temperature curves per extraction.",           color: "#60a5fa" },
+  { icon: Layers,     title: "Profile Library",  desc: "Browse your machine's profiles with OEPF stage diagrams and settings.",                    color: "#a78bfa" },
+  { icon: Radio,      title: "Live Monitor",     desc: "Watch your extraction in real-time via Socket.IO telemetry streaming.",                    color: "#f87171" },
+  { icon: GitCompare, title: "Shot Comparison",  desc: "Overlay up to 5 shots to analyse consistency and dial-in improvements.",                  color: "#34d399" },
+  { icon: Share2,     title: "Geeky Share Cards",desc: "Share profiles with actual shot telemetry, curves, and full OEPF data.",                   color: "#f5a855" },
+];
 
 export default function HomePage() {
   const router = useRouter();
@@ -23,179 +32,102 @@ export default function HomePage() {
 
   if (checking) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#131313]">
-        <Loader2 className="h-5 w-5 animate-spin text-[#F5C444]/50" />
+      <div className="flex items-center justify-center min-h-screen bg-[#0c0a09]">
+        <Loader2 className="h-5 w-5 animate-spin text-[#e8944a]/50" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#131313]">
-      {/* ── Hero ──────────────────────────────────────────────── */}
-      <section className="relative min-h-screen flex flex-col justify-center px-6 md:px-24 overflow-hidden">
-        {/* SVG pressure curve line art */}
-        <svg className="pointer-events-none absolute inset-0 w-full h-full opacity-[0.04]" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice">
-          <path d="M0,400 C100,400 150,200 300,180 C450,160 500,350 600,300 C700,250 750,100 900,120 C1050,140 1100,280 1200,260" stroke="#F5C444" strokeWidth="2" fill="none" />
-          <path d="M0,450 C100,450 150,250 300,230 C450,210 500,400 600,350 C700,300 750,150 900,170 C1050,190 1100,330 1200,310" stroke="#FFE4AA" strokeWidth="1.5" fill="none" />
-        </svg>
-        {/* Warm glow */}
-        <div className="pointer-events-none absolute top-1/3 left-1/4 w-[600px] h-[400px] rounded-full bg-[#F5C444] opacity-[0.04] blur-[120px]" />
-
-        <div className="relative max-w-4xl">
-          {/* Label */}
-          <div className="flex items-center gap-3 mb-8">
-            <div className="h-px w-8 bg-[#F5C444]" />
-            <span className="text-[11px] uppercase tracking-widest text-[#F5C444] font-space">
-              Laboratory Grade Precision
-            </span>
+    <div className="min-h-screen bg-[#0c0a09]">
+      {/* Hero */}
+      <section className="relative overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 flex items-start justify-center">
+          <div className="h-[400px] w-[600px] rounded-full bg-[#e8944a] opacity-[0.04] blur-[120px] -translate-y-1/2" />
+        </div>
+        <div className="relative mx-auto max-w-4xl px-6 py-28 text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#e8944a]/20 bg-[#e8944a]/[0.08] px-3 py-1 text-xs font-medium text-[#e8944a] mb-8">
+            <Coffee className="h-3 w-3" />
+            Community-first · Always free · Open source
           </div>
-          {/* H1 */}
-          <h1 className="text-5xl sm:text-7xl font-black tracking-tight text-[#E5E2E1] leading-[1.0] mb-3">
-            Your Meticulous.
+          <h1 className="text-5xl sm:text-6xl font-bold tracking-tight text-[#f5f0ea] mb-6 leading-[1.1]">
+            Your Meticulous machine,<br />
+            <span className="text-[#e8944a]">fully unleashed.</span>
           </h1>
-          <h1 className="text-5xl sm:text-7xl font-black tracking-tight leading-[1.0] mb-8">
-            <span className="brass-gradient bg-clip-text text-transparent">Fully Unleashed.</span>
-          </h1>
-          {/* Subtext */}
-          <p className="text-base sm:text-lg text-[#E5E2E1]/50 max-w-xl mb-10 leading-relaxed">
-            Connect locally to your machine. Browse community profiles,
-            monitor extractions live, and share telemetry-rich shot data.
+          <p className="text-lg text-[#f5f0ea]/50 max-w-2xl mx-auto mb-10 leading-relaxed">
+            Connect directly to your machine. Pull shot history. Browse and share profiles
+            with full geeky telemetry — pressure curves, flow diagrams, and actual extraction data.
           </p>
-          {/* CTAs */}
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <button
               onClick={() => setShowConnect(true)}
-              className="inline-flex items-center gap-2 brass-gradient rounded-sm px-6 py-3 text-sm font-black uppercase tracking-widest text-[#3E2E00] hover:opacity-90 transition-all active:scale-95 shadow-[0_0_30px_rgba(245,196,68,0.2)]"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#e8944a] px-6 py-3 text-sm font-semibold text-[#0c0a09] hover:bg-[#f5a855] transition-all shadow-[0_0_30px_rgba(232,148,74,0.25)] hover:shadow-[0_0_40px_rgba(232,148,74,0.35)]"
             >
               <Coffee className="h-4 w-4" /> Connect My Machine
             </button>
             <Link
-              href="/community"
-              className="inline-flex items-center gap-2 ghost-border rounded-sm px-6 py-3 text-sm font-medium text-[#E5E2E1]/60 hover:text-[#E5E2E1] hover:bg-[#1C1B1B] transition-all"
+              href="/profiles"
+              className="inline-flex items-center gap-2 rounded-xl border border-white/[0.10] bg-white/[0.04] px-6 py-3 text-sm font-medium text-[#f5f0ea]/70 hover:bg-white/[0.07] hover:text-[#f5f0ea] transition-all"
             >
-              Browse Community <ArrowRight className="h-4 w-4" />
+              Browse Profiles <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </div>
+      </section>
 
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-[#E5E2E1]/20">
-          <div className="w-px h-12 bg-gradient-to-b from-transparent to-[#F5C444]/30" />
-          <span className="text-[10px] uppercase tracking-widest font-space">Scroll</span>
+      {/* Stats bar */}
+      <section className="border-y border-white/[0.05] bg-white/[0.02]">
+        <div className="mx-auto max-w-4xl px-6 py-6 grid grid-cols-3 gap-4 text-center">
+          {[
+            { value: "~300", label: "Data points per shot" },
+            { value: "OEPF", label: "Open profile format" },
+            { value: "0",    label: "Cost to run" },
+          ].map(({ value, label }) => (
+            <div key={label}>
+              <p className="text-2xl font-bold font-mono text-[#e8944a]">{value}</p>
+              <p className="text-xs text-[#f5f0ea]/35 mt-0.5">{label}</p>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* ── Bento grid ──────────────────────────────────────── */}
-      <section className="px-6 md:px-24 py-24 bg-[#0E0E0E]">
-        <div className="mb-12">
-          <span className="text-[10px] uppercase tracking-widest text-[#F5C444] font-space">Platform Features</span>
-          <h2 className="text-3xl font-black tracking-tight text-[#E5E2E1] mt-2">Built for obsessives.</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-          {/* Large card — telemetry stats */}
-          <div className="md:col-span-8 ghost-border rounded bg-[#1C1B1B] p-8 flex flex-col gap-6">
-            <div>
-              <span className="text-[10px] uppercase tracking-widest text-[#9A8F7B] font-space">Live Telemetry</span>
-              <h3 className="text-xl font-black tracking-tight text-[#E5E2E1] mt-1">Real-time Pressure Mapping</h3>
-            </div>
-            <div className="flex gap-8">
-              {[["50Hz","Sample Rate"],["0.01","BAR Resolution"],["~300","Points/Shot"]].map(([v, l]) => (
-                <div key={l}>
-                  <p className="text-3xl font-black text-[#F5C444]">{v}</p>
-                  <p className="text-xs text-[#9A8F7B] uppercase tracking-wider mt-1 font-space">{l}</p>
-                </div>
-              ))}
-            </div>
-            {/* Mini bar chart */}
-            <div className="h-20 flex items-end gap-1 mt-auto">
-              {[30,45,70,85,90,88,82,78,75,72,70,68,65,62,60,55,50,45,40,35].map((h, i) => (
-                <div key={i} className="flex-1 rounded-sm bg-[#F5C444]/20" style={{ height: `${h}%` }} />
-              ))}
-            </div>
-          </div>
-
-          {/* Community card */}
-          <div className="md:col-span-4 ghost-border rounded bg-[#1C1B1B] p-6 flex flex-col gap-4">
-            <span className="text-[10px] uppercase tracking-widest text-[#9A8F7B] font-space">Community</span>
-            <div className="flex-1 flex flex-col justify-center gap-4">
-              <div>
-                <p className="text-4xl font-black text-[#E5E2E1]">OEPF</p>
-                <p className="text-xs text-[#9A8F7B] mt-1 font-space uppercase tracking-wider">Open Profile Format</p>
+      {/* Features grid */}
+      <section className="mx-auto max-w-5xl px-6 py-20">
+        <h2 className="text-2xl font-bold text-[#f5f0ea] text-center mb-3">Everything in one place</h2>
+        <p className="text-[#f5f0ea]/40 text-center text-sm mb-12">No backend. No cloud. Connects directly to your machine over your local network.</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {FEATURES.map(({ icon: Icon, title, desc, color }) => (
+            <div key={title} className="group rounded-2xl border border-white/[0.06] bg-[#161210] p-5 hover:border-white/[0.12] hover:bg-[#1e1b16] transition-all">
+              <div className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-xl" style={{ backgroundColor: `${color}18`, color }}>
+                <Icon className="h-4 w-4" />
               </div>
-              <div className="h-px bg-[#4E4635]/30" />
-              <div>
-                <p className="text-2xl font-black text-[#FFE4AA]">100%</p>
-                <p className="text-xs text-[#9A8F7B] mt-1 font-space uppercase tracking-wider">Open Source</p>
-              </div>
+              <h3 className="font-semibold text-[#f5f0ea] mb-1.5">{title}</h3>
+              <p className="text-sm text-[#f5f0ea]/45 leading-relaxed">{desc}</p>
             </div>
-          </div>
-
-          {/* Connection card */}
-          <div className="md:col-span-4 ghost-border rounded bg-[#201F1F] p-6 flex flex-col gap-3">
-            <span className="text-[10px] uppercase tracking-widest text-[#9A8F7B] font-space">Local Network</span>
-            <div className="flex items-center gap-2 mt-2">
-              <span className="inline-flex h-2 w-2 rounded-full bg-[#4ADE80] pulse-dot shrink-0" />
-              <span className="text-sm text-[#E5E2E1]/70">Direct connection</span>
-            </div>
-            <p className="text-xs text-[#9A8F7B] leading-relaxed">No cloud. No subscription. Connects over your local network via HTTP API.</p>
-          </div>
-
-          {/* API version card */}
-          <div className="md:col-span-8 ghost-border rounded bg-[#201F1F] p-6 flex items-center justify-between">
-            <div>
-              <span className="text-[10px] uppercase tracking-widest text-[#9A8F7B] font-space">API Compatibility</span>
-              <p className="text-xl font-black text-[#E5E2E1] mt-1">Meticulous REST API v1</p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-[#9A8F7B] font-space uppercase tracking-wider">Cost to run</p>
-              <p className="text-3xl font-black text-[#F5C444]">$0</p>
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* ── Split section ────────────────────────────────────── */}
-      <section className="grid md:grid-cols-2 min-h-[500px]">
-        {/* Left: abstract gradient art */}
-        <div className="relative bg-[#1C1B1B] flex items-center justify-center overflow-hidden min-h-[300px] md:min-h-0">
-          <div className="absolute inset-0">
-            <div className="absolute top-1/4 left-1/4 w-48 h-48 rounded-full bg-[#F5C444] opacity-[0.08] blur-[60px]" />
-            <div className="absolute bottom-1/4 right-1/4 w-32 h-32 rounded-full bg-[#FFE4AA] opacity-[0.05] blur-[40px]" />
-            <svg className="absolute inset-0 w-full h-full opacity-10" viewBox="0 0 400 300">
-              <path d="M0,200 C80,200 100,80 200,60 C300,40 320,160 400,140" stroke="#F5C444" strokeWidth="1.5" fill="none" />
-              <path d="M0,220 C80,220 100,100 200,80 C300,60 320,180 400,160" stroke="#FFE4AA" strokeWidth="1" fill="none" />
-              <circle cx="200" cy="60" r="4" fill="#F5C444" opacity="0.5" />
-            </svg>
-          </div>
-          <p className="relative z-10 text-6xl font-black text-[#F5C444] opacity-20 select-none">BAR</p>
-        </div>
-
-        {/* Right: features list */}
-        <div className="bg-[#131313] px-8 md:px-12 py-12 flex flex-col justify-center gap-6">
-          <div>
-            <span className="text-[10px] uppercase tracking-widest text-[#F5C444] font-space">Why metbarista</span>
-            <h2 className="text-2xl font-black tracking-tight text-[#E5E2E1] mt-2">Everything your machine can do.</h2>
-          </div>
-          <ul className="space-y-4">
+      {/* Ecosystem */}
+      <section className="border-t border-white/[0.05]">
+        <div className="mx-auto max-w-5xl px-6 py-16">
+          <h2 className="text-lg font-semibold text-[#f5f0ea] mb-6">The Meticulous Ecosystem</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[
-              "Full shot history with pressure, flow & temperature curves",
-              "Browse and load profiles from your machine",
-              "Live telemetry streaming via Socket.IO",
-              "Compare up to 5 extractions side-by-side",
-              "Share rich shot data with the community",
-            ].map((item, i) => (
-              <li key={i} className="flex items-start gap-3">
-                <span className="mt-1.5 h-1.5 w-1.5 rounded-full brass-gradient shrink-0" />
-                <span className="text-sm text-[#E5E2E1]/60">{item}</span>
-              </li>
+              { title: "metprofiles.link",   desc: "Community profiles — browse, rate, and load to your machine",     href: "https://metprofiles.link" },
+              { title: "Discord Community",  desc: "The official (unofficial) Meticulous community server",            href: "https://discord.gg/w48ha2h3" },
+              { title: "MeticulousHome",     desc: "Open-source firmware, backend, API clients, and more",             href: "https://github.com/MeticulousHome" },
+            ].map(({ title, desc, href }) => (
+              <a key={title} href={href} target="_blank" rel="noopener noreferrer"
+                className="group flex items-start gap-3 rounded-xl border border-white/[0.06] bg-[#161210] p-4 hover:border-white/[0.12] hover:bg-[#1e1b16] transition-all">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-[#f5f0ea] group-hover:text-[#e8944a] transition-colors">{title}</p>
+                  <p className="text-xs text-[#f5f0ea]/40 mt-1 leading-relaxed">{desc}</p>
+                </div>
+                <ArrowRight className="h-3.5 w-3.5 text-[#f5f0ea]/20 group-hover:text-[#e8944a] group-hover:translate-x-0.5 transition-all shrink-0 mt-0.5" />
+              </a>
             ))}
-          </ul>
-          <button
-            onClick={() => setShowConnect(true)}
-            className="self-start inline-flex items-center gap-2 ghost-border rounded-sm px-5 py-2.5 text-sm font-medium text-[#E5E2E1]/60 hover:text-[#FFE4AA] hover:border-[#F5C444]/20 transition-all"
-          >
-            Get Started <ArrowRight className="h-4 w-4" />
-          </button>
+          </div>
         </div>
       </section>
 
