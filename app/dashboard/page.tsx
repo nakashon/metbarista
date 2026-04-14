@@ -189,32 +189,36 @@ export default function DashboardPage() {
         {/* Machine control */}
         <div className="rounded-2xl border border-white/[0.06] bg-[#161210] p-5">
           <p className="text-xs text-[#f5f0ea]/35 uppercase tracking-wider mb-4">Machine Control</p>
-          <div className="flex flex-wrap gap-2">
-            {ACTIONS.map(({ action, label, icon: Icon, style }) => {
-              const base = "inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold transition-all disabled:opacity-40";
+          {/* Secondary actions: small grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
+            {ACTIONS.filter(a => a.style !== "primary").map(({ action, label, icon: Icon, style }) => {
+              const base = "flex flex-col items-center justify-center gap-2 rounded-xl py-4 text-xs font-semibold transition-all disabled:opacity-40 active:scale-95";
               const cls =
-                style === "primary"
-                  ? `${base} bg-[#e8944a] text-[#0c0a09] hover:bg-[#f5a855]`
-                  : style === "danger"
-                  ? `${base} bg-red-500/15 text-red-400 border border-red-500/20 hover:bg-red-500/25`
-                  : `${base} border border-white/[0.10] text-[#f5f0ea]/60 hover:bg-white/[0.05] hover:text-[#f5f0ea]`;
+                style === "danger"
+                  ? `${base} bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20`
+                  : `${base} border border-white/[0.08] text-[#f5f0ea]/55 hover:bg-white/[0.05] hover:text-[#f5f0ea]`;
               return (
-                <button
-                  key={action}
-                  onClick={() => doAction(action)}
-                  disabled={actionLoading !== null}
-                  className={cls}
-                >
-                  {actionLoading === action ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  ) : (
-                    <Icon className="h-3.5 w-3.5" />
-                  )}
+                <button key={action} onClick={() => doAction(action)}
+                  disabled={actionLoading !== null} className={cls}>
+                  {actionLoading === action
+                    ? <Loader2 className="h-4 w-4 animate-spin" />
+                    : <Icon className="h-4 w-4" />}
                   {label}
                 </button>
               );
             })}
           </div>
+          {/* Start Shot — full-width hero CTA */}
+          {ACTIONS.filter(a => a.style === "primary").map(({ action, label, icon: Icon }) => (
+            <button key={action} onClick={() => doAction(action)}
+              disabled={actionLoading !== null}
+              className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-[#e8944a] py-4 text-sm font-bold text-[#0c0a09] hover:bg-[#f5a855] transition-all shadow-[0_4px_30px_rgba(232,148,74,0.25)] hover:shadow-[0_4px_40px_rgba(232,148,74,0.4)] active:scale-[0.99] disabled:opacity-40">
+              {actionLoading === action
+                ? <Loader2 className="h-4 w-4 animate-spin" />
+                : <Icon className="h-4 w-4" />}
+              {label}
+            </button>
+          ))}
         </div>
 
         {/* Recent shots */}

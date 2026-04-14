@@ -41,16 +41,26 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-[#0c0a09]">
       {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 flex items-start justify-center">
-          <div className="h-[400px] w-[600px] rounded-full bg-[#e8944a] opacity-[0.04] blur-[120px] -translate-y-1/2" />
+      <section className="relative overflow-hidden min-h-[90vh] flex items-center">
+        {/* Radial glow */}
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <div className="h-[600px] w-[800px] rounded-full bg-[#e8944a] opacity-[0.05] blur-[140px]" />
         </div>
-        <div className="relative mx-auto max-w-4xl px-6 py-28 text-center">
+        {/* Pressure curve line art — very subtle */}
+        <div className="pointer-events-none absolute bottom-0 inset-x-0 overflow-hidden">
+          <svg className="w-full opacity-[0.12]" viewBox="0 0 1200 160" preserveAspectRatio="none">
+            <path d="M0,150 Q150,150 220,70 T480,45 T700,110 T920,30 T1200,35"
+              fill="none" stroke="#e8944a" strokeWidth="2" />
+            <path d="M0,158 Q150,158 220,78 T480,53 T700,118 T920,38 T1200,43"
+              fill="none" stroke="#e8944a" strokeWidth="1" opacity="0.4" />
+          </svg>
+        </div>
+        <div className="relative mx-auto max-w-4xl px-6 py-28 text-center w-full">
           <div className="inline-flex items-center gap-2 rounded-full border border-[#e8944a]/20 bg-[#e8944a]/[0.08] px-3 py-1 text-xs font-medium text-[#e8944a] mb-8">
             <Coffee className="h-3 w-3" />
             Community-first · Always free · Open source
           </div>
-          <h1 className="text-5xl sm:text-6xl font-bold tracking-tight text-[#f5f0ea] mb-6 leading-[1.1]">
+          <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight text-[#f5f0ea] mb-6 leading-[1.05]">
             Your Meticulous machine,<br />
             <span className="text-[#e8944a]">fully unleashed.</span>
           </h1>
@@ -61,13 +71,13 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <button
               onClick={() => setShowConnect(true)}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#e8944a] px-6 py-3 text-sm font-semibold text-[#0c0a09] hover:bg-[#f5a855] transition-all shadow-[0_0_30px_rgba(232,148,74,0.25)] hover:shadow-[0_0_40px_rgba(232,148,74,0.35)]"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#e8944a] px-7 py-3.5 text-sm font-semibold text-[#0c0a09] hover:bg-[#f5a855] transition-all shadow-[0_0_40px_rgba(232,148,74,0.3)] hover:shadow-[0_0_55px_rgba(232,148,74,0.45)] active:scale-[0.98]"
             >
               <Coffee className="h-4 w-4" /> Connect My Machine
             </button>
             <Link
               href="/profiles"
-              className="inline-flex items-center gap-2 rounded-xl border border-white/[0.10] bg-white/[0.04] px-6 py-3 text-sm font-medium text-[#f5f0ea]/70 hover:bg-white/[0.07] hover:text-[#f5f0ea] transition-all"
+              className="inline-flex items-center gap-2 rounded-xl border border-white/[0.10] bg-white/[0.04] px-7 py-3.5 text-sm font-medium text-[#f5f0ea]/70 hover:bg-white/[0.07] hover:text-[#f5f0ea] transition-all"
             >
               Browse Profiles <ArrowRight className="h-4 w-4" />
             </Link>
