@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { ExternalLink, MessageSquare, Coffee, GitBranch, Wrench, BookOpen, HelpCircle, Loader2, RefreshCw, Radio, Zap } from "lucide-react";
 
 const DISCORD_INVITE = "https://discord.gg/w48ha2h3";
-const PROXY = "https://api.allorigins.win/raw?url=";
+const PROXY = "https://metbarista-feed-proxy.metbarista.workers.dev/?url=";
 
 // ─── Atom feed fetcher ────────────────────────────────────────────────────────
 
