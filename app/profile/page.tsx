@@ -5,10 +5,14 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ProfileCurvePreview } from "@/components/charts/profile-curve-preview";
 import { ProfileFingerprint } from "@/components/charts/profile-fingerprint";
-import { Loader2, ArrowLeft, Thermometer, Weight, User, GitFork, Code } from "lucide-react";
+import { Loader2, ArrowLeft, Thermometer, Weight, User, GitFork, Code, TrendingUp, TrendingDown, Minus, BarChart3 } from "lucide-react";
 import { listProfiles, getHistory, loadProfileById, computeShotStats } from "@/lib/machine-api";
 import { getSavedIp } from "@/lib/connection-store";
 import { ShotChart } from "@/components/charts/shot-chart";
+import { ShotScoreBadge } from "@/components/shot-report-card";
+import { getTrend, trendDirection } from "@/lib/shot-trend";
+import { analyzeShot } from "@/lib/shot-analysis";
+import { recordTrend } from "@/lib/shot-trend";
 import type { Profile, ShotEntry } from "@/lib/types";
 
 const STAGE_COLORS: Record<string, { bg: string; text: string }> = {
@@ -244,6 +248,70 @@ function ProfileDetailContent() {
         )}
 
         {/* Related shots */}
+        {/* Trend & Analysis */}
+        {profile && relatedShots.length > 0 && (() => {
+          // Analyze and record trends for related shots
+          for (const s of relatedShots) {
+            if (s.profile) {
+              const analysis = analyzeShot(s);
+              if (analysis.applicableCount > 0) recordTrend(s.profile, s.time, analysis);
+            }
+          }
+          const trend = getTrend(profile);
+          const entries = trend?.entries.slice(-10) ?? [];
+          if (entries.length < 2) return null;
+
+          const scores = entries.map((e) => e.overallScore);
+          const min = Math.min(...scores);
+          const max = Math.max(...scores);
+          const range = max - min || 1;
+          const dir = trendDirection(entries);
+          const DirIcon = dir === "improving" ? TrendingUp : dir === "declining" ? TrendingDown : Minus;
+          const dirColor = dir === "improving" ? "#22c55e" : dir === "declining" ? "#ef4444" : "#e8944a";
+          const dirLabel = dir === "improving" ? "Improving" : dir === "declining" ? "Declining" : dir === "stable" ? "Consistent" : "";
+
+          const w = 280, h = 60, pad = 8;
+          const points = scores.map((s, i) => {
+            const x = pad + (i / (scores.length - 1)) * (w - pad * 2);
+            const y = h - pad - ((s - min) / range) * (h - pad * 2);
+            return `${x},${y}`;
+          }).join(" ");
+
+          return (
+            <div className="rounded-2xl border border-white/[0.06] bg-[#161210] p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4 text-[#f5f0ea]/30" />
+                  <h2 className="text-sm font-semibold text-[#f5f0ea]">Score Trend</h2>
+                </div>
+                {dirLabel && (
+                  <div className="flex items-center gap-1" style={{ color: dirColor }}>
+                    <DirIcon className="h-3.5 w-3.5" />
+                    <span className="text-xs font-medium">{dirLabel}</span>
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center gap-4">
+                <svg width={w} height={h} className="shrink-0">
+                  <polyline points={points} fill="none" stroke="#e8944a" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+                  {scores.map((s, i) => {
+                    const x = pad + (i / (scores.length - 1)) * (w - pad * 2);
+                    const y = h - pad - ((s - min) / range) * (h - pad * 2);
+                    return <circle key={i} cx={x} cy={y} r={2.5} fill="#e8944a" />;
+                  })}
+                </svg>
+                <div className="text-right">
+                  <p className="text-2xl font-bold font-mono text-[#e8944a]">{scores[scores.length - 1]}</p>
+                  <p className="text-[10px] text-[#f5f0ea]/25 uppercase tracking-wider">Latest</p>
+                </div>
+              </div>
+              <p className="text-xs text-[#f5f0ea]/25">
+                {entries.length} shots analyzed · scores range {min}–{max}
+              </p>
+            </div>
+          );
+        })()}
+
         {relatedShots.length > 0 && (
           <div>
             <h2 className="text-xs font-semibold text-[#f5f0ea]/40 uppercase tracking-wider mb-4">Shots with this profile</h2>
@@ -256,7 +324,10 @@ function ProfileDetailContent() {
                       <span className="text-sm font-medium text-[#f5f0ea]/70">
                         {new Date(shot.time * 1000).toLocaleString()}
                       </span>
-                      <span className="text-xs text-[#f5f0ea]/30">{stats.durationSec}s · {stats.finalWeight.toFixed(1)}g</span>
+                      <div className="flex items-center gap-2">
+                        <ShotScoreBadge shot={shot} size="xs" />
+                        <span className="text-xs text-[#f5f0ea]/30">{stats.durationSec}s · {stats.finalWeight.toFixed(1)}g</span>
+                      </div>
                     </div>
                     <div className="p-4">
                       <ShotChart frames={shot.data} height={160} showTemp={false} />

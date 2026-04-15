@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import type { ShotEntry } from "@/lib/types";
 import { computeShotStats } from "@/lib/machine-api";
 import { getShotNote } from "@/lib/shot-notes";
+import { ShotScoreBadge } from "@/components/shot-report-card";
 
 interface ShotCardProps {
   shot: ShotEntry;
@@ -48,6 +49,7 @@ export function ShotCard({ shot, href, compact = false }: ShotCardProps) {
           ))}
         </div>
       )}
+      <ShotScoreBadge shot={shot} size="xs" />
       {!compact && (
         <div className="hidden sm:flex items-center gap-4 text-xs font-mono text-[#f5f0ea]/40 shrink-0">
           <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{stats.durationSec}s</span>

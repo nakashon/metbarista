@@ -17,6 +17,7 @@ import { getMachineInfo, getHistory, executeAction, listProfiles } from "@/lib/m
 import { getSavedIp, clearIp, useRequireConnection } from "@/lib/connection-store";
 import { connectSocket, disconnectSocket, refreshNow } from "@/lib/machine-socket";
 import { ShotNoteEditor } from "@/components/shot-note-editor";
+import { ShotScoreBadge } from "@/components/shot-report-card";
 import type { MachineInfo, ShotEntry, Profile, LiveStatus } from "@/lib/types";
 import type { ActionType } from "@/lib/types";
 
@@ -613,6 +614,7 @@ export default function DashboardPage() {
                       {format(new Date(shot.time * 1000), "MMM d · HH:mm")}
                     </p>
                   </div>
+                  <ShotScoreBadge shot={shot} size="xs" />
                   <span className="text-xs font-mono text-[#f5f0ea]/25">#{shot.db_key}</span>
                 </Link>
               ))}

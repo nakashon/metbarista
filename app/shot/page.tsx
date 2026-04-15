@@ -6,8 +6,9 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { ShotChart } from "@/components/charts/shot-chart";
 import { ShotNoteEditor } from "@/components/shot-note-editor";
-import { Loader2, ArrowLeft, Clock, Weight, Gauge, Droplets, Thermometer, Layers, NotebookPen } from "lucide-react";
+import { Loader2, ArrowLeft, Clock, Weight, Gauge, Droplets, Thermometer, Layers, NotebookPen, BarChart3 } from "lucide-react";
 import { getHistory, computeShotStats } from "@/lib/machine-api";
+import { ShotReportCard } from "@/components/shot-report-card";
 import type { ShotEntry } from "@/lib/types";
 
 function stageBadgeStyle(type: string): string {
@@ -105,6 +106,9 @@ function ShotDetailContent() {
           </div>
           <ShotChart frames={shot.data} height={300} showTemp={showTemp} />
         </div>
+
+        {/* Shot Analysis Report Card */}
+        <ShotReportCard shot={shot} />
 
         {/* Profile used */}
         {shot.profile && (
