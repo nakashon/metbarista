@@ -11,6 +11,7 @@ import {
 import { getHistory, computeShotStats } from "@/lib/machine-api";
 import { getShotNote } from "@/lib/shot-notes";
 import { ShotScoreBadge } from "@/components/shot-report-card";
+import { analyzeShot } from "@/lib/shot-analysis";
 import type { ShotEntry } from "@/lib/types";
 
 // Lazy-load heavy components (Recharts) — only when detail is open
@@ -48,6 +49,7 @@ function ShotListItem({
   const date = new Date(shot.time * 1000);
   const accent = shot.profile?.display?.accentColor ?? "#e8944a";
   const [rating, setRating] = useState<number | null>(null);
+  const isThrowaway = useMemo(() => analyzeShot(shot).throwaway, [shot]);
 
   useEffect(() => {
     const saved = getShotNote(shot.time);
@@ -58,6 +60,8 @@ function ShotListItem({
     <button
       onClick={onSelect}
       className={`w-full text-left flex items-center gap-3 rounded-xl border px-4 py-3 transition-all ${
+        isThrowaway ? "opacity-40" : ""
+      } ${
         selected
           ? "border-[#e8944a]/30 bg-[#1e1b16]"
           : "border-white/[0.05] bg-[#161210] hover:border-white/[0.10] hover:bg-[#1e1b16]"

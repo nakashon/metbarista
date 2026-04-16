@@ -40,7 +40,7 @@ function setWatermark(wm: Watermark): void {
 /** Process a single shot — analyze, record trend, record for gamification. */
 function processShot(shot: ShotEntry): void {
   const analysis = analyzeShot(shot);
-  if (analysis.applicableCount === 0) return;
+  if (analysis.applicableCount === 0 || analysis.throwaway) return;
 
   if (shot.profile) {
     recordTrend(shot.profile, shot.time, analysis);

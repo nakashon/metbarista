@@ -41,6 +41,8 @@ export interface ShotAnalysis {
   totalCount: number;
   analysisVersion: number;
   computedAt: number;
+  throwaway: boolean; // true if shot looks like a flush/warmup/throwaway
+  throwawayReason?: string;
 }
 
 // ── Config (tunable) ─────────────────────────────────────────
@@ -657,6 +659,43 @@ function generateSuggestions(metrics: ShotMetric[]): Suggestion[] {
   return suggestions;
 }
 
+// ── Throwaway / flush detection ──────────────────────────────
+
+function detectThrowaway(
+  frames: ShotFrame[],
+  metrics: ShotMetric[],
+  applicableCount: number
+): { throwaway: boolean; reason?: string } {
+  if (frames.length < 5) {
+    return { throwaway: true, reason: "Too few data frames" };
+  }
+
+  // Very short shot (<8s total) is almost certainly a flush
+  const lastTime = frames[frames.length - 1]?.time ?? 0;
+  if (lastTime < 8000) {
+    return { throwaway: true, reason: "Shot under 8 seconds — likely a flush" };
+  }
+
+  // Check brew temp — if avg is below espresso range, it's a warmup
+  const extractionFrames = frames.filter((f) => f.time > 3000);
+  const temps = extractionFrames
+    .map((f) => f.sensors.bar_mid_up)
+    .filter((t) => typeof t === "number" && !isNaN(t) && t > 0);
+  if (temps.length > 5) {
+    const avgTemp = temps.reduce((a, b) => a + b, 0) / temps.length;
+    if (avgTemp < MIN_BREW_TEMP_C) {
+      return { throwaway: true, reason: `Brew temp ${avgTemp.toFixed(0)}°C — likely a flush or warmup` };
+    }
+  }
+
+  // If almost no metrics are applicable, the shot data is too sparse to be real
+  if (applicableCount <= 1 && frames.length > 20) {
+    return { throwaway: true, reason: "Insufficient data for meaningful analysis" };
+  }
+
+  return { throwaway: false };
+}
+
 // ── Main Entry Point ─────────────────────────────────────────
 
 export function analyzeShot(shot: ShotEntry): ShotAnalysis {
@@ -692,6 +731,9 @@ export function analyzeShot(shot: ShotEntry): ShotAnalysis {
     }, 0);
   }
 
+  // Detect throwaway/flush shots
+  const { throwaway, reason: throwawayReason } = detectThrowaway(frames, metrics, applicable.length);
+
   // Generate actionable suggestions
   const suggestions = generateSuggestions(metrics);
 
@@ -703,5 +745,7 @@ export function analyzeShot(shot: ShotEntry): ShotAnalysis {
     totalCount: metrics.length,
     analysisVersion: ANALYSIS_VERSION,
     computedAt: Date.now(),
+    throwaway,
+    throwawayReason,
   };
 }

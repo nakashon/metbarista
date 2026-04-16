@@ -210,11 +210,10 @@ interface ShotReportCardProps {
 export function ShotReportCard({ shot, defaultExpanded = true }: ShotReportCardProps) {
   const analysis = useMemo(() => analyzeShot(shot), [shot]);
 
-  // Record trend for this shot (deduplicates internally)
+  // Record trend for this shot (deduplicates internally) — skip throwaways
   useMemo(() => {
-    if (shot.profile && analysis.applicableCount > 0) {
+    if (shot.profile && analysis.applicableCount > 0 && !analysis.throwaway) {
       recordTrend(shot.profile, shot.time, analysis);
-      // Record for gamification stats
       recordShot(shot.time, shot.profile.id, shot.profile.name, analysis);
     }
   }, [shot, analysis]);
@@ -226,6 +225,20 @@ export function ShotReportCard({ shot, defaultExpanded = true }: ShotReportCardP
     if (!shot.profile) return [];
     return getRecentTrend(shot.profile, 10);
   }, [shot.profile]);
+
+  if (analysis.throwaway) {
+    return (
+      <div className="rounded-2xl border border-white/[0.06] bg-[#161210] p-5 opacity-50">
+        <div className="flex items-center gap-2 text-[#f5f0ea]/40">
+          <Info className="h-4 w-4" />
+          <div>
+            <p className="text-sm font-medium">Flush / warmup shot</p>
+            <p className="text-xs text-[#f5f0ea]/25 mt-0.5">{analysis.throwawayReason} — excluded from stats and gamification</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (analysis.applicableCount === 0) {
     return (
@@ -292,13 +305,24 @@ export function ShotReportCard({ shot, defaultExpanded = true }: ShotReportCardP
 export function ShotScoreBadge({ shot, size = "sm" }: { shot: ShotEntry; size?: "sm" | "xs" }) {
   const analysis = useMemo(() => analyzeShot(shot), [shot]);
 
+  const sizeClasses = size === "sm" ? "px-2 py-0.5 text-xs" : "px-1.5 py-px text-[10px]";
+
+  if (analysis.throwaway) {
+    return (
+      <span
+        className={`inline-flex items-center gap-1 rounded-md font-mono ${sizeClasses} text-[#f5f0ea]/20 bg-[#f5f0ea]/[0.04] border border-[#f5f0ea]/[0.06]`}
+        title={analysis.throwawayReason}
+      >
+        flush
+      </span>
+    );
+  }
+
   if (analysis.applicableCount === 0) return null;
 
   const score = analysis.overallScore;
   const color =
     score >= 90 ? "#22c55e" : score >= 70 ? "#e8944a" : score >= 50 ? "#f59e0b" : "#ef4444";
-
-  const sizeClasses = size === "sm" ? "px-2 py-0.5 text-xs" : "px-1.5 py-px text-[10px]";
 
   return (
     <span

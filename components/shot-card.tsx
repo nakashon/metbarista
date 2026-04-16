@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { Clock, Weight, Gauge, Droplets, Star } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import type { ShotEntry } from "@/lib/types";
 import { computeShotStats } from "@/lib/machine-api";
 import { getShotNote } from "@/lib/shot-notes";
 import { ShotScoreBadge } from "@/components/shot-report-card";
+import { analyzeShot } from "@/lib/shot-analysis";
 
 interface ShotCardProps {
   shot: ShotEntry;
@@ -20,6 +21,7 @@ export function ShotCard({ shot, href, compact = false }: ShotCardProps) {
   const date = new Date(shot.time * 1000);
   const accent = shot.profile?.display?.accentColor ?? "#e8944a";
   const [rating, setRating] = useState<number | null>(null);
+  const isThrowaway = useMemo(() => analyzeShot(shot).throwaway, [shot]);
 
   useEffect(() => {
     const saved = getShotNote(shot.time);
@@ -27,7 +29,7 @@ export function ShotCard({ shot, href, compact = false }: ShotCardProps) {
   }, [shot.time]);
 
   const inner = (
-    <div className="group flex items-center gap-4 rounded-xl border border-white/[0.05] bg-[#161210] px-4 py-3.5 hover:border-white/[0.10] hover:bg-[#1e1b16] transition-all cursor-pointer">
+    <div className={`group flex items-center gap-4 rounded-xl border border-white/[0.05] bg-[#161210] px-4 py-3.5 hover:border-white/[0.10] hover:bg-[#1e1b16] transition-all cursor-pointer ${isThrowaway ? "opacity-40" : ""}`}>
       <div className="h-1.5 w-1.5 rounded-full shrink-0 mt-0.5" style={{ backgroundColor: accent }} />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-[#f5f0ea] truncate group-hover:text-[#e8944a] transition-colors">{shot.name}</p>
