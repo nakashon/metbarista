@@ -10,7 +10,7 @@ import type { ShotEntry, ShotFrame, Profile, ProfileStage } from "./types";
 // ── Version ──────────────────────────────────────────────────
 // Bump when scoring thresholds or weights change. Stored with
 // every analysis so trends stay comparable across versions.
-export const ANALYSIS_VERSION = 2;
+export const ANALYSIS_VERSION = 3;
 
 // ── Types ────────────────────────────────────────────────────
 
@@ -50,16 +50,20 @@ export interface ShotAnalysis {
 interface MetricConfig {
   key: string;
   label: string;
-  weight: number; // relative weight for overall score
+  weight: number; // relative weight for overall score (0 = informational only)
+  category: "barista" | "machine"; // barista metrics drive score; machine metrics are FYI
 }
 
 const METRIC_CONFIGS: MetricConfig[] = [
-  { key: "weight_accuracy", label: "Weight Accuracy", weight: 20 },
-  { key: "pressure_tracking", label: "Pressure Tracking", weight: 25 },
-  { key: "flow_tracking", label: "Flow Tracking", weight: 20 },
-  { key: "pressure_overshoot", label: "Pressure Control", weight: 15 },
-  { key: "channeling_risk", label: "Channeling Risk", weight: 10 },
-  { key: "temp_stability", label: "Temp Stability", weight: 10 },
+  // ── Barista metrics (these drive the overall score) ──
+  { key: "weight_accuracy", label: "Weight Accuracy", weight: 30, category: "barista" },
+  { key: "channeling_risk", label: "Puck Prep", weight: 35, category: "barista" },
+  { key: "flow_smoothness", label: "Flow Smoothness", weight: 35, category: "barista" },
+  // ── Machine metrics (informational — shown but not scored) ──
+  { key: "pressure_tracking", label: "Pressure Tracking", weight: 0, category: "machine" },
+  { key: "flow_tracking", label: "Flow Tracking", weight: 0, category: "machine" },
+  { key: "pressure_overshoot", label: "Pressure Control", weight: 0, category: "machine" },
+  { key: "temp_stability", label: "Temp Stability", weight: 0, category: "machine" },
 ];
 
 // ── Helpers ──────────────────────────────────────────────────
@@ -447,7 +451,7 @@ function scorePressureOvershoot(
 
 function scoreChannelingRisk(frames: ShotFrame[]): ShotMetric {
   const key = "channeling_risk";
-  const label = "Channeling Risk";
+  const label = "Puck Prep";
 
   // Need enough frames for meaningful analysis
   const flows = frames
@@ -473,7 +477,6 @@ function scoreChannelingRisk(frames: ShotFrame[]): ShotMetric {
     if (avg < 0.3) continue; // skip near-zero flow
     const spike = (flows[i] - avg) / avg;
     if (spike > 0.35) {
-      // Also check for simultaneous pressure drop (stronger signal)
       spikeCount++;
       maxSpikePct = Math.max(maxSpikePct, spike);
     }
@@ -491,7 +494,67 @@ function scoreChannelingRisk(frames: ShotFrame[]): ShotMetric {
     detail:
       spikeCount === 0
         ? "Even flow throughout — good puck prep"
-        : `Possible channeling — ${spikeCount} sudden flow increase${spikeCount > 1 ? "s" : ""} (up to ${(maxSpikePct * 100).toFixed(0)}% above average). Review puck prep and distribution.`,
+        : `${spikeCount} sudden flow increase${spikeCount > 1 ? "s" : ""} (up to ${(maxSpikePct * 100).toFixed(0)}% above average) — review distribution and tamp`,
+    applicable: true,
+  };
+}
+
+/** Flow Smoothness — measures how even the flow rate is during the main
+ *  extraction phase. Erratic flow = poor grind uniformity or uneven puck.
+ *  This is about the actual flow curve shape, not vs setpoint (that's machine). */
+function scoreFlowSmoothness(frames: ShotFrame[]): ShotMetric {
+  const key = "flow_smoothness";
+  const label = "Flow Smoothness";
+
+  // Only look at main extraction: pressure > 2 bar AND flow > 0.3 ml/s
+  const extractionFlows = frames
+    .filter((f) => f.shot.pressure > 2 && f.shot.flow > 0.3)
+    .map((f) => f.shot.flow);
+
+  if (extractionFlows.length < 15) {
+    return {
+      key, label, score: 0, status: "poor",
+      value: "Not enough extraction data",
+      applicable: false,
+    };
+  }
+
+  // Measure frame-to-frame flow variation (jitter)
+  // A smooth flow curve has small differences between consecutive frames
+  const diffs: number[] = [];
+  for (let i = 1; i < extractionFlows.length; i++) {
+    diffs.push(Math.abs(extractionFlows[i] - extractionFlows[i - 1]));
+  }
+  const avgJitter = diffs.reduce((a, b) => a + b, 0) / diffs.length;
+  const avgFlow = extractionFlows.reduce((a, b) => a + b, 0) / extractionFlows.length;
+
+  // Normalize jitter as % of average flow (scale-independent)
+  const relativeJitter = avgFlow > 0 ? avgJitter / avgFlow : 0;
+
+  // Also measure overall coefficient of variation
+  const flowSd = stdDev(extractionFlows);
+  const cv = avgFlow > 0 ? flowSd / avgFlow : 0;
+
+  // Combined score: low jitter + low CV = smooth flow
+  // relativeJitter < 0.03 = very smooth, > 0.15 = very rough
+  const jitterScore = clamp(100 - (relativeJitter / 0.15) * 100);
+  // CV < 0.10 = consistent, > 0.40 = erratic
+  const cvScore = clamp(100 - (cv / 0.40) * 100);
+
+  const score = clamp(jitterScore * 0.6 + cvScore * 0.4);
+
+  return {
+    key,
+    label,
+    score: Math.round(score),
+    status: statusFromScore(score),
+    value: `${(relativeJitter * 100).toFixed(1)}% jitter · ${avgFlow.toFixed(1)} ml/s avg`,
+    detail:
+      score >= 85
+        ? "Smooth, even flow — excellent grind and puck prep"
+        : score >= 60
+          ? "Minor flow variation — grind could be more uniform"
+          : "Erratic flow during extraction — check grind consistency, distribution, and tamp pressure",
     applicable: true,
   };
 }
@@ -639,6 +702,15 @@ function generateSuggestions(metrics: ShotMetric[]): Suggestion[] {
         });
         break;
 
+      case "flow_smoothness":
+        suggestions.push({
+          priority: m.score < 50 ? "high" : "medium",
+          metric: m.key,
+          message: "Erratic flow during extraction",
+          detail: "Uneven flow suggests inconsistent grind particle size or uneven puck. Try a finer grind adjustment, WDT, and level tamp.",
+        });
+        break;
+
       case "temp_stability":
         if (m.score < 50) {
           suggestions.push({
@@ -705,44 +777,55 @@ export function analyzeShot(shot: ShotEntry): ShotAnalysis {
   // Reconstruct per-frame targets
   const targets = reconstructTargets(frames, profile);
 
-  // Score each metric
+  // Score each metric — barista metrics first, then machine (informational)
   const metrics: ShotMetric[] = [
+    // Barista skill metrics (scored)
     scoreWeightAccuracy(frames, profile),
+    scoreChannelingRisk(frames),
+    scoreFlowSmoothness(frames),
+    // Machine performance metrics (informational, weight: 0)
     scorePressureTracking(frames, targets),
     scoreFlowTracking(frames, targets),
     scorePressureOvershoot(frames, targets),
-    scoreChannelingRisk(frames),
     scoreTempStability(frames),
   ];
 
-  // Compute weighted overall score (only from applicable metrics)
+  // Compute weighted overall score — only barista metrics (weight > 0) count
+  const scored = metrics.filter((m) => {
+    const config = METRIC_CONFIGS.find((c) => c.key === m.key);
+    return m.applicable && (config?.weight ?? 0) > 0;
+  });
   const applicable = metrics.filter((m) => m.applicable);
   let overallScore = 0;
-  if (applicable.length > 0) {
-    const totalWeight = applicable.reduce((sum, m) => {
+  if (scored.length > 0) {
+    const totalWeight = scored.reduce((sum, m) => {
       const config = METRIC_CONFIGS.find((c) => c.key === m.key);
-      return sum + (config?.weight ?? 10);
+      return sum + (config?.weight ?? 0);
     }, 0);
 
-    overallScore = applicable.reduce((sum, m) => {
+    overallScore = scored.reduce((sum, m) => {
       const config = METRIC_CONFIGS.find((c) => c.key === m.key);
-      const weight = config?.weight ?? 10;
+      const weight = config?.weight ?? 0;
       return sum + (m.score * weight) / totalWeight;
     }, 0);
   }
 
   // Detect throwaway/flush shots
-  const { throwaway, reason: throwawayReason } = detectThrowaway(frames, metrics, applicable.length);
+  const { throwaway, reason: throwawayReason } = detectThrowaway(frames, metrics, scored.length);
 
-  // Generate actionable suggestions
-  const suggestions = generateSuggestions(metrics);
+  // Generate actionable suggestions (only from barista metrics)
+  const baristaMetrics = metrics.filter((m) => {
+    const config = METRIC_CONFIGS.find((c) => c.key === m.key);
+    return config?.category === "barista";
+  });
+  const suggestions = generateSuggestions(baristaMetrics);
 
   return {
     overallScore: Math.round(overallScore),
     metrics,
     suggestions,
-    applicableCount: applicable.length,
-    totalCount: metrics.length,
+    applicableCount: scored.length,
+    totalCount: baristaMetrics.length,
     analysisVersion: ANALYSIS_VERSION,
     computedAt: Date.now(),
     throwaway,
