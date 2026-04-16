@@ -18,6 +18,7 @@ interface PhaseInfo { label: string; color: string; pulse: boolean }
 const PHASE_MAP: Record<string, PhaseInfo> = {
   idle:       { label: "Idle",       color: "text-[#f5f0ea]/40", pulse: false },
   preheating: { label: "Preheating", color: "text-orange-400",   pulse: true  },
+  heating:    { label: "Preheating", color: "text-orange-400",   pulse: true  },
   preparing:  { label: "Preparing",  color: "text-yellow-400",   pulse: false },
   ready:      { label: "Ready",      color: "text-green-400",    pulse: false },
   extracting: { label: "Brewing",    color: "text-blue-400",     pulse: true  },

@@ -30,6 +30,7 @@ interface PhaseInfo { label: string; color: string; pulse: boolean }
 const PHASE_MAP: Record<string, PhaseInfo> = {
   idle:       { label: "Idle",       color: "text-[#f5f0ea]/40", pulse: false },
   preheating: { label: "Preheating", color: "text-orange-400",   pulse: true  },
+  heating:    { label: "Preheating", color: "text-orange-400",   pulse: true  },
   preparing:  { label: "Preparing",  color: "text-yellow-400",   pulse: false },
   ready:      { label: "Ready",      color: "text-green-400",    pulse: false },
   extracting: { label: "Brewing",    color: "text-blue-400",     pulse: true  },
@@ -372,7 +373,7 @@ export default function DashboardPage() {
     );
   }
 
-  const isPreheating = liveStatus?.name === "preheating";
+  const isPreheating = liveStatus?.name?.toLowerCase().includes("heat") ?? false;
   const isExtracting = liveStatus?.extracting;
 
   const ACTIONS: { action: ActionType; label: string; icon: React.ElementType; style: "primary" | "danger" | "outline" }[] = [
@@ -471,15 +472,15 @@ export default function DashboardPage() {
             {/* Machine state badge */}
             <div className="flex items-center gap-2">
               <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${
-                liveStatus?.name === "idle"        ? "bg-white/[0.06] text-[#f5f0ea]/50" :
-                liveStatus?.name === "preheating"  ? "bg-[#e8944a]/15 text-[#e8944a]" :
-                liveStatus?.extracting             ? "bg-[#4ade80]/15 text-[#4ade80]" :
-                liveStatus                         ? "bg-blue-500/15 text-blue-400" :
+                liveStatus?.name === "idle"  ? "bg-white/[0.06] text-[#f5f0ea]/50" :
+                isPreheating                 ? "bg-[#e8944a]/15 text-[#e8944a]" :
+                liveStatus?.extracting       ? "bg-[#4ade80]/15 text-[#4ade80]" :
+                liveStatus                   ? "bg-blue-500/15 text-blue-400" :
                 "bg-white/[0.04] text-[#f5f0ea]/20"
               }`}>
                 <span className={`h-1.5 w-1.5 rounded-full ${
                   liveStatus?.extracting ? "bg-[#4ade80] animate-pulse" :
-                  liveStatus?.name === "preheating" ? "bg-[#e8944a] animate-pulse" :
+                  isPreheating           ? "bg-[#e8944a] animate-pulse" :
                   "bg-current opacity-60"
                 }`} />
                 {liveStatus?.name ?? (socketState === "error" ? "offline" : "connecting…")}
