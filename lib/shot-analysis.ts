@@ -131,8 +131,8 @@ function detectThrowaway(frames: ShotFrame[]): { throwaway: boolean; reason?: st
   // Cold water flush
   const hotFrames = frames.filter((f) => f.time > 3000);
   const temps = hotFrames
-    .map((f) => f.sensors.bar_mid_up)
-    .filter((t) => typeof t === "number" && !isNaN(t) && t > 0);
+    .map((f) => f.sensors?.bar_mid_up)
+    .filter((t): t is number => typeof t === "number" && !isNaN(t) && t > 0);
   if (temps.length > 5) {
     const avgTemp = temps.reduce((a, b) => a + b, 0) / temps.length;
     if (avgTemp < MIN_BREW_TEMP_C) {
@@ -319,8 +319,8 @@ function machineTempStability(
   // Skip first 5s (pre-infusion settling)
   const hotFrames = frames.filter((f) => f.time > 5000);
   const temps = hotFrames
-    .map((f) => f.sensors.bar_mid_up)
-    .filter((t) => typeof t === "number" && !isNaN(t) && t > 0);
+    .map((f) => f.sensors?.bar_mid_up)
+    .filter((t): t is number => typeof t === "number" && !isNaN(t) && t > 0);
 
   if (temps.length < 10) {
     return { key, label, score: 0, status: "poor", value: "Insufficient data", applicable: false, category: cat };
@@ -337,12 +337,12 @@ function machineTempStability(
 
   const earlyTemps = hotFrames
     .filter((f) => f.time <= earlyWindowEnd)
-    .map((f) => f.sensors.bar_mid_up)
-    .filter((t) => typeof t === "number" && !isNaN(t) && t > 0);
+    .map((f) => f.sensors?.bar_mid_up)
+    .filter((t): t is number => typeof t === "number" && !isNaN(t) && t > 0);
   const lateTemps = hotFrames
     .filter((f) => f.time >= lateWindowStart)
-    .map((f) => f.sensors.bar_mid_up)
-    .filter((t) => typeof t === "number" && !isNaN(t) && t > 0);
+    .map((f) => f.sensors?.bar_mid_up)
+    .filter((t): t is number => typeof t === "number" && !isNaN(t) && t > 0);
 
   const startTemp = earlyTemps.length > 0 ? earlyTemps.reduce((a, b) => a + b, 0) / earlyTemps.length : avgTemp;
   const endTemp = lateTemps.length > 0 ? lateTemps.reduce((a, b) => a + b, 0) / lateTemps.length : avgTemp;
@@ -660,7 +660,7 @@ export function computeProfileDrift(
   if (profile.temperature && profile.temperature > 0 && validShots.length >= 1) {
     const actualTemps = validShots.map((s) => {
       const frames = trimAtRetract(s.data ?? []).filter((f) => f.time > 5000);
-      const temps = frames.map((f) => f.sensors.bar_mid_up).filter((t) => typeof t === "number" && !isNaN(t) && t > MIN_BREW_TEMP_C);
+      const temps = frames.map((f) => f.sensors?.bar_mid_up).filter((t): t is number => typeof t === "number" && !isNaN(t) && t > MIN_BREW_TEMP_C);
       return temps.length > 0 ? temps.reduce((a, b) => a + b, 0) / temps.length : 0;
     }).filter((t) => t > 0);
 

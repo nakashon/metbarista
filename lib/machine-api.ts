@@ -14,8 +14,13 @@ import type {
   ShotStats,
   ShotFrame,
 } from "./types";
+import {
+  LOCAL_NETWORK_PERMISSION_TIMEOUT_MS,
+  localNetworkRequestInit,
+} from "./local-network";
 
 const DEFAULT_TIMEOUT_MS = 8000;
+const DEFAULT_HISTORY_RESULT_LIMIT = 20;
 
 // ── Helpers ──────────────────────────────────────────────────
 
@@ -33,11 +38,16 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const timer = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
 
   try {
-    const res = await fetch(`${base}/api/v1${path}`, {
+    const res = await fetch(`${base}/api/v1${path}`, localNetworkRequestInit({
       ...options,
       signal: controller.signal,
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }));
+    if (!res.ok) {
+      if (res.status === 409) {
+        throw new Error("Machine is busy. Stop the current operation and try again.");
+      }
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
     return res.json() as Promise<T>;
   } finally {
     clearTimeout(timer);
@@ -61,11 +71,7 @@ export async function listProfiles(): Promise<Profile[]> {
 }
 
 export async function loadProfileById(id: string): Promise<void> {
-  await apiFetch<unknown>("/profile/load", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id }),
-  });
+  await apiFetch<unknown>(`/profile/load/${encodeURIComponent(id)}`);
 }
 
 export async function loadProfileInline(profile: Profile): Promise<void> {
@@ -85,7 +91,9 @@ export async function saveProfile(profile: Profile): Promise<void> {
 }
 
 export async function deleteProfile(id: string): Promise<void> {
-  await apiFetch<unknown>(`/profile/${id}`, { method: "DELETE" });
+  await apiFetch<unknown>(`/profile/delete/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
 }
 
 // Returns the URL for a profile image (served by the machine)
@@ -98,8 +106,13 @@ export function getProfileImageUrl(imagePath: string): string {
 
 // ── History ──────────────────────────────────────────────────
 
-export async function getHistory(): Promise<ShotEntry[]> {
-  const res = await apiFetch<HistoryResponse>("/history");
+export async function getHistory(
+  maxResults = DEFAULT_HISTORY_RESULT_LIMIT,
+): Promise<ShotEntry[]> {
+  const limit = Math.max(1, Math.floor(maxResults));
+  const res = await apiFetch<HistoryResponse>(
+    `/history?max_results=${limit}`,
+  );
   // Sort newest first
   return res.history.sort((a, b) => b.time - a.time);
 }
@@ -117,11 +130,14 @@ export async function executeAction(action: ActionType): Promise<void> {
 
 export async function testConnection(ip: string): Promise<MachineInfo> {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 5000);
+  const timer = setTimeout(
+    () => controller.abort(),
+    LOCAL_NETWORK_PERMISSION_TIMEOUT_MS,
+  );
   try {
-    const res = await fetch(`http://${ip}/api/v1/machine`, {
+    const res = await fetch(`http://${ip}/api/v1/machine`, localNetworkRequestInit({
       signal: controller.signal,
-    });
+    }));
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return res.json() as Promise<MachineInfo>;
   } finally {
@@ -153,8 +169,8 @@ export function computeShotStats(frames: ShotFrame[]): ShotStats {
   const flows = frames.map((f) => f.shot.flow).filter((v) => !isNaN(v));
   const weights = frames.map((f) => f.shot.weight).filter((v) => !isNaN(v) && v > 0);
   const temps = frames
-    .map((f) => f.sensors.bar_mid_up)
-    .filter((v) => typeof v === "number" && !isNaN(v));
+    .map((f) => f.sensors?.bar_mid_up)
+    .filter((v): v is number => typeof v === "number" && !isNaN(v));
   const phases = [...new Set(frames.map((f) => f.status))];
 
   return {

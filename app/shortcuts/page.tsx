@@ -173,9 +173,9 @@ export default function ShortcutsPage() {
         <div className="rounded-xl border border-[#e8944a]/15 bg-[#e8944a]/[0.05] px-4 py-3 flex gap-2.5">
           <Share2 className="h-4 w-4 text-[#e8944a] shrink-0 mt-0.5" />
           <p className="text-xs text-[#f5f0ea]/50 leading-relaxed">
-            <span className="text-[#e8944a] font-medium">Pro tip:</span> Use{" "}
-            <span className="font-mono text-[#f5f0ea]/60">http://metbarista.com</span> (not https) for the
-            shortcut URL on mobile — browsers block secure pages from reaching local network devices.
+            <span className="text-[#e8944a] font-medium">First launch:</span> Your browser may ask whether
+            MetBarista can find and connect to devices on your local network. Choose Allow so the shortcut
+            can reach your machine.
           </p>
         </div>
       </div>

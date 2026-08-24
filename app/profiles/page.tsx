@@ -34,16 +34,18 @@ export default function ProfilesPage() {
       await loadProfileById(profile.id);
       setToast({ type: "success", msg: `✓ "${profile.name}" loaded to machine` });
       setTimeout(() => setToast(null), 3000);
-    } catch {
-      setToast({ type: "error", msg: "Failed to load profile" });
+    } catch (error) {
+      setToast({
+        type: "error",
+        msg: error instanceof Error ? error.message : "Failed to load profile",
+      });
       setTimeout(() => setToast(null), 3000);
     } finally {
       setLoadingId(null);
     }
   }
 
-  // /api/v1/profile/list does NOT return stages — infer type from variables instead.
-  // Profiles with pressure vars → pressure, flow vars → flow, neither → power.
+  // Infer type from variables so this also works with lightweight profile lists.
   function inferTypes(p: Profile): string[] {
     const vtypes = new Set((p.variables ?? []).map((v) => v.type));
     const out: string[] = [];

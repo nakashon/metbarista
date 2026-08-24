@@ -39,23 +39,21 @@ Everything runs in your browser. MetBarista talks directly to `http://{your-mach
 
 MetBarista is served over both HTTP and HTTPS at `metbarista.com`.
 
-**Live telemetry** (socket polling to your local machine IP) requires the browser to make requests to `http://192.168.x.x` — a private network address. Modern browsers enforce the [Private Network Access](https://developer.chrome.com/blog/private-network-access-update/) spec which restricts this in certain HTTPS contexts.
+**Live telemetry** (socket polling to your local machine IP) requires the browser to make requests to `http://192.168.x.x` — a private network address. Modern Chromium browsers protect these requests with a [Local Network Access](https://developer.chrome.com/blog/local-network-access/) permission.
 
 ### In practice
 
 | Context | REST API (controls, profiles) | Live Telemetry (socket polling) |
 |---|---|---|
-| `http://metbarista.com` | ✅ Works | ✅ Works |
-| `https://metbarista.com` | ✅ Works (machine returns correct CORS headers) | ✅ Works (machine returns `Access-Control-Allow-Origin: https://metbarista.com`) |
-| Mobile browser | ✅ Works | ✅ Works |
+| `https://metbarista.com` with Local Network Access allowed | ✅ Works | ✅ Works |
+| Local Network Access denied | ❌ Blocked | ❌ Blocked |
+| Cellular or guest WiFi | ❌ Unreachable | ❌ Unreachable |
 
 ### If live data stops working
 
 The machine uses socket.io EIO4 HTTP long-polling (not WebSocket). MetBarista implements this manually via `fetch()` to avoid library quirks. The session stays alive by responding to the machine's ping packets (`"2"`) with pong (`"3"`) every 10 seconds.
 
-If your browser blocks socket polling (you'll see `err` in the Live badge):
-1. **Chrome desktop:** Go to `chrome://net-internals/#hsts` → search `metbarista.com` → Delete (clears the HSTS cache that forces HTTPS)
-2. **Try `http://metbarista.com`** directly — HTTP works for all features
+When connecting, allow the browser prompt that asks whether MetBarista can find and connect to devices on your local network. If access was previously denied, open the site permissions for `metbarista.com`, enable **Local network access**, and connect again.
 
 ---
 
@@ -120,8 +118,10 @@ The Meticulous machine exposes a local HTTP API (same as the official app):
 ```
 GET  /api/v1/machine                  → machine info (name, serial, firmware)
 GET  /api/v1/profile/list?full=true   → all profiles with full stage data
-GET  /api/v1/history                  → shot history list
-GET  /api/v1/history/{id}             → single shot telemetry
+GET  /api/v1/profile/load/{id}        → load a stored profile by UUID
+DELETE /api/v1/profile/delete/{id}    → delete a stored profile
+GET  /api/v1/history?max_results=20   → shot history list
+GET  /api/v1/history?ids[]={id}       → single shot telemetry
 POST /api/v1/action/{name}            → action: start | stop | preheat | tare | purge | home | abort
 ```
 

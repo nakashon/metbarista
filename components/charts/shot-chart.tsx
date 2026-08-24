@@ -84,7 +84,7 @@ export function ShotChart({
       pressure: showPressure ? f.shot.pressure : undefined,
       flow: showFlow ? f.shot.flow : undefined,
       weight: showWeight && f.shot.weight > 0 ? f.shot.weight : undefined,
-      temp: showTemp ? f.sensors.bar_mid_up : undefined,
+      temp: showTemp ? f.sensors?.bar_mid_up : undefined,
       status: f.status,
     }));
   }, [frames, showPressure, showFlow, showWeight, showTemp]);

@@ -7,6 +7,10 @@
  */
 
 import type { LiveStatus, LiveTemperatures } from "./types";
+import {
+  LOCAL_NETWORK_PERMISSION_TIMEOUT_MS,
+  localNetworkRequestInit,
+} from "./local-network";
 
 type SocketEventMap = {
   status: (data: LiveStatus) => void;
@@ -34,11 +38,11 @@ function parsePackets(raw: string): Array<[string, unknown]> {
     if (pkt === "2") {
       // ping — send pong asynchronously (fire and forget)
       if (activeSid && activeBase) {
-        fetch(`${activeBase}&sid=${activeSid}`, {
+        fetch(`${activeBase}&sid=${activeSid}`, localNetworkRequestInit({
           method: "POST",
           headers: { "Content-Type": "text/plain" },
           body: "3",
-        }).catch(() => {});
+        })).catch(() => {});
       }
       continue;
     }
@@ -54,9 +58,9 @@ function parsePackets(raw: string): Array<[string, unknown]> {
 async function doPoll(): Promise<void> {
   if (stopped || !activeSid || !activeBase) return;
   try {
-    const res = await fetch(`${activeBase}&sid=${activeSid}&t=${Date.now()}`, {
+    const res = await fetch(`${activeBase}&sid=${activeSid}&t=${Date.now()}`, localNetworkRequestInit({
       signal: AbortSignal.timeout(5000),
-    });
+    }));
     if (!res.ok) return;
     const raw = await res.text();
     for (const [event, data] of parsePackets(raw)) {
@@ -79,7 +83,9 @@ export async function connectSocket(handlers: Partial<SocketEventMap>): Promise<
   activeBase = base;
 
   // Step 1 — open session
-  const openRes = await fetch(base, { signal: AbortSignal.timeout(6000) });
+  const openRes = await fetch(base, localNetworkRequestInit({
+    signal: AbortSignal.timeout(LOCAL_NETWORK_PERMISSION_TIMEOUT_MS),
+  }));
   if (!openRes.ok) throw new Error(`Open failed: ${openRes.status}`);
   const openRaw = await openRes.text();
   const jsonStart = openRaw.indexOf("{");
@@ -88,12 +94,12 @@ export async function connectSocket(handlers: Partial<SocketEventMap>): Promise<
   activeSid = sid;
 
   // Step 2 — send socket.io namespace connect "40"
-  await fetch(`${base}&sid=${sid}`, {
+  await fetch(`${base}&sid=${sid}`, localNetworkRequestInit({
     method: "POST",
     headers: { "Content-Type": "text/plain" },
     body: "40",
     signal: AbortSignal.timeout(6000),
-  });
+  }));
 
   handlers.connect?.();
 

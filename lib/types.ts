@@ -133,7 +133,7 @@ export interface ShotFrame {
   time: number; // ms since shot start
   profile_time: number;
   status: string; // phase name e.g. "Flow", "retracting"
-  sensors: ShotSensors;
+  sensors?: ShotSensors;
 }
 
 export interface ShotEntry {

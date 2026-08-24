@@ -50,8 +50,11 @@ function ProfileDetailContent() {
       await loadProfileById(profile.id);
       setLoadMsg({ type: "success", msg: "✓ Profile loaded to machine!" });
       setTimeout(() => setLoadMsg(null), 3000);
-    } catch {
-      setLoadMsg({ type: "error", msg: "Failed to load profile" });
+    } catch (error) {
+      setLoadMsg({
+        type: "error",
+        msg: error instanceof Error ? error.message : "Failed to load profile",
+      });
       setTimeout(() => setLoadMsg(null), 3000);
     }
   }
